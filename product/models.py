@@ -1,4 +1,12 @@
 from django.db import models
-
 class Product(models.Model):
-  pass
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255,default="",blank=False)
+    image = models.ImageField(upload_to='product/images/', default='static/images/notfound.png')
+    description = models.TextField(max_length=1000,default="",blank=False)
+    price = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    add_date = models.DateTimeField(auto_now_add=True,null=True, blank=True)
+    update_date = models.DateTimeField(auto_now=True,null=True, blank=True)
+    brand = models.CharField(max_length=225,default="",blank=False)
+    stock=models.IntegerField(default=0)
+

@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'payment.apps.PaymentConfig',
     'review.apps.ReviewConfig',
     'cart.apps.CartConfig',
+    'rest_framework' ,
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -82,7 +84,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"12345"
+        "PASSWORD":"123"
     }
 }
 
@@ -122,6 +124,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+MEDIA_URL = 'media/'  # This should be the URL where your media files are served from.
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/') 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
