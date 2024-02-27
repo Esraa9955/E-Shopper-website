@@ -25,3 +25,38 @@ def getproductbyid(request, id):
     return Response({'product': productjson})
 
 
+
+
+@api_view(['POST'])
+def addProduct(request):
+    serializer = ProductsSerlizer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'msg': 'added'})
+    else:
+        print(serializer.errors)
+        return Response({'msg': 'wrong data', 'error': serializer.errors})
+
+
+
+@api_view(['PUT'])
+def updateProduct(request, id):
+    updateobj = Product.objects.filter(id=id).first()
+    if updateobj:
+        serializedProduct = ProductsSerlizer(
+            instance=updateobj, data=request.data)
+        if serializedProduct.is_valid():
+            print(serializedProduct.validated_data)  
+            serializedProduct.save()  
+            return Response(data=serializedProduct.data)
+
+
+
+@api_view(['DELETE'])
+def deleteProduct(request, id):
+    pro = Product.objects.filter(id=id).first()
+    if pro is not None:  # Check if pro exists
+        pro.delete()
+        return Response({'msg': 'deleted'})
+    return Response({'msg': 'product not found'})
+
