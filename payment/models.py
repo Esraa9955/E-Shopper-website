@@ -9,7 +9,7 @@ class Payment(models.Model):
   status = models.BooleanField(default=False)
 
 class PaymentOrder(models.Model):
-  order_id = models.ForeignKey(Order,on_delete=models.CASCADE)
+  #order_id = models.ForeignKey(Order,on_delete=models.CASCADE)
   payment_id=models.ForeignKey(Payment,on_delete=models.CASCADE)
   # Customer_id =models.ForeignKey(Customer,on_delete=models.CASCADE)
 
