@@ -17,5 +17,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     if user.is_staff:
       return Order.objects.all()
     return Order.objects.filter(buyer=user)
-
+  
+  def get_serializer_context(self):
+    return {"user_id":self.request.user.id}
   
