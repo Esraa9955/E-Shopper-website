@@ -1,23 +1,85 @@
-from rest_framework import viewsets
-from .models import Order
-from rest_framework.permissions import IsAuthenticated
-from .selializers import OrderSerializer, CreateOrderSerializer
-class OrderViewSet(viewsets.ModelViewSet):
-  permission_classes = [IsAuthenticated]
-  
-  #queryset = Order.objects.all()
-  def get_serializer_class(self):
-    if self.request.method == 'POST':
-      return CreateOrderSerializer
-    return OrderSerializer
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view,permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated ,IsAdminUser
+from rest_framework import status
 
-   
-  def get_queryset(self):
-    user = self.request.user
-    if user.is_staff:
-      return Order.objects.all()
-    return Order.objects.filter(buyer=user)
-  
-  def get_serializer_context(self):
-    return {"user_id":self.request.user.id}
-  
+from product.models import Product   
+from .serializers import OrderSerializer
+from .models import Order,OrderItem
+# Create your views here.
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_orders(request):
+    orders = Order.objects.all()
+    serializer = OrderSerializer(orders,many=True)
+    return Response({'orders':serializer.data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_order(request,pk):
+    order =get_object_or_404(Order, id=pk)
+
+    serializer = OrderSerializer(order,many=False)
+    return Response({'order':serializer.data})
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def process_order(request,pk):
+    order =get_object_or_404(Order, id=pk)
+    order.status = request.data['status']
+    order.save()
+     
+    serializer = OrderSerializer(order,many=False)
+    return Response({'order':serializer.data})
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_order(request,pk):
+    order =get_object_or_404(Order, id=pk) 
+    order.delete()
+      
+    return Response({'details': "order is deleted"})
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def new_order(request):
+    if not request.user.is_authenticated:
+        return Response({'error': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+    user = request.user 
+    data = request.data
+    order_items = data['order_Items']
+
+    if order_items and len(order_items) == 0:
+      return Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
+    else:
+        total_price = sum( item['price']* item['quantity'] for item in order_items)
+        order = Order.objects.create(
+            buyer = user,
+            city = data['city'],
+            zip_code = data['zip_code'],
+            street = data['street'],
+            #phone_no = data['phone_no'],
+            country = data['country'],
+            total_price = total_price,
+        )
+        for i in order_items:
+            product = Product.objects.get(id=i['product'])
+            item = OrderItem.objects.create(
+                product= product,
+                order = order,
+                name = product.name,
+                quantity = i['quantity'],
+                price = i['price']
+            )
+            product.stock -= item.quantity
+            product.save()
+        serializer = OrderSerializer(order,many=False)
+        return Response(serializer.data)
