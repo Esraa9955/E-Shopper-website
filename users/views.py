@@ -87,10 +87,11 @@ class allUsers(APIView):
         return Response({'model':'User', 'Users':dataJSON}) 
     
 
+    
 class IsAuthenticatedUser(BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated
-    
+
 @api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated, IsAuthenticatedUser])
 def UpdateUserView(request, id):
@@ -106,6 +107,14 @@ def UpdateUserView(request, id):
     else:
         return Response({'msg':'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['DELETE'])
+@permission_classes([permissions.IsAuthenticated, IsAuthenticatedUser])
+def delete(request,id):
+  us=User.objects.filter(id=id).first()
+  if(us):
+     User.objects.filter(id=id).delete()
+     return Response({'msg':'User Deleted'}) 
+  return Response({'msg':'User Not Found'})
 
 
 
