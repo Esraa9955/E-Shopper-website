@@ -51,6 +51,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=10, blank=True, validators=[MinLengthValidator(limit_value=3), MaxLengthValidator(limit_value=30)])
     email = models.EmailField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
+    confirm_password = models.CharField(max_length=255 , default='')
     username = models.CharField(max_length=25 , default='')
     USERNAME_FIELD = 'email'
     phone = models.CharField(max_length=11)
