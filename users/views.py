@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from rest_framework.exceptions import NotFound
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,18 +7,12 @@ from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
 import jwt, datetime
-# from django.shortcuts import render
-# from datetime import datetime, timedelta
-# from django.shortcuts import get_object_or_404, render
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.response import Response
-# from django.contrib.auth.models import User
-# from django.contrib.auth.hashers import make_password
-# from rest_framework import status
-# from .serializers import SignUpSerializer,UserSerializer
-# from rest_framework.permissions import IsAuthenticated
-# from django.utils.crypto import get_random_string
-# from django.core.mail import send_mail
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status
+from rest_framework.permissions import BasePermission
+from rest_framework import permissions
+
+
 # Create your views here.
 
 class RegisterView(APIView):
@@ -44,7 +38,7 @@ class LoginView(APIView):
 
         payload = {
             'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1), # expiration 1h
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60), # expiration 1h
             'iat': datetime.datetime.utcnow() # tokenCreatedAt
         }
 
@@ -92,3 +86,28 @@ class allUsers(APIView):
         dataJSON=UserSerializer(users,many=True).data
         return Response({'model':'User', 'Users':dataJSON}) 
     
+
+class IsAuthenticatedUser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated
+    
+@api_view(['PUT'])
+@permission_classes([permissions.IsAuthenticated, IsAuthenticatedUser])
+def UpdateUserView(request, id):
+    update_object = User.objects.filter(id=id).first()
+    if update_object:
+        serialized_user = UserSerializer(instance=update_object, data=request.data, partial=True)
+        if serialized_user.is_valid():
+            serialized_user.save()
+            return Response(data=serialized_user.data)
+        else:
+            print(serialized_user.errors)  # Print serializer errors for debugging
+            return Response({'msg':'Invalid Data'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'msg':'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+

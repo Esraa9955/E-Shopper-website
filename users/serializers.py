@@ -6,15 +6,13 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password','confirm_password','phone', 'usertype', 'address', 'shopname', 'is_superuser']
-        # not show pass to user
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirm_password', 'phone', 'usertype', 'address', 'shopname', 'is_superuser']
         extra_kwargs = {
             'password': {'required': True, 'allow_blank': False, 'min_length': 8, 'write_only': True},
             'confirm_password': {'required': True, 'allow_blank': False,'min_length': 8, 'write_only': True },
             'email': {'required': True, 'allow_blank': False},
             'first_name': {'required': True, 'allow_blank': False},
             'last_name': {'required': True, 'allow_blank': False},
-            # 'username': {},
         }
 
     def validate_shopname(self, value):
@@ -38,4 +36,19 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(password)
             user.save()
         return user
+    
+
+    def update(self, instance, validated_data):
+        # Only allow updating certain fields based on user type
+        if instance.usertype == 'vendor':
+            allowed_fields = ['first_name', 'last_name', 'email', 'address', 'phone', 'shopname']
+        else:
+            allowed_fields = ['first_name', 'last_name', 'email', 'address', 'phone']
+
+        for field in allowed_fields:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+
+        instance.save()
+        return instance
     
