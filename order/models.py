@@ -30,6 +30,9 @@ class Order(models.Model):
   #      Address, related_name="order_address", on_delete=models.CASCADE
   #  )
 
+  def __str__(self):
+     return self.status
+
     
 
 
@@ -45,24 +48,25 @@ class Order(models.Model):
       return order
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(
-        Order, related_name="order_items", on_delete=models.CASCADE
-    )
-    product = models.ForeignKey(
-        Product, related_name="product_order", on_delete=models.CASCADE
-    )
-    quantity = models.IntegerField()
-    total_price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
-
-    @staticmethod
-    def create_order_item(order, product, quantity, total):
-        order_item = OrderItem()
-        order_item.order = order
-        order_item.product = product
-        order_item.quantity = quantity
-        order_item.total_price = total  # Fixing the attribute name
-        order_item.save()
-        return order_item
-    
+  order = models.ForeignKey(
+      Order, related_name="order_items", on_delete=models.CASCADE
+  )
+  product = models.ForeignKey(
+    Product, related_name="product_order", on_delete=models.CASCADE
+  )
+  quantity = models.IntegerField()
+  total_price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
+  def __str__(self):
+    return self.product.name
+  @staticmethod
+  def create_order_item(order, product, quantity, total):
+      order_item = OrderItem()
+      order_item.order = order
+      order_item.product = product
+      order_item.quantity = quantity
+      order_item.total_price = total  # Fixing the attribute name
+      order_item.save()
+      return order_item
+  
 
 
