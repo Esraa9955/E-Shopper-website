@@ -5,10 +5,13 @@ from cart.models import *
 class CartSerlizer(serializers.ModelSerializer):
     def validate(self, data):
         if Cart.objects.filter(user=data['user'], item=data['item']).exists():
-            raise serializers.ValidationError("You have already added this item to your cart.")
+            raise serializers.ValidationError({'errmsg':"You have already added this item to your cart."})
         else:
-            if data['quantity'] > data['item'].stock:
-                raise serializers.ValidationError("more than stock")
+            if data['user'].usertype != 'Customer':
+                raise serializers.ValidationError({'errmsg':"user isn't a customer"})
+            else:
+                if data['quantity'] > data['item'].stock:
+                    raise serializers.ValidationError({'errmsg':"more than stock"})
         return data
     class Meta:
         model = Cart
