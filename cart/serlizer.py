@@ -7,7 +7,7 @@ class CartSerlizer(serializers.ModelSerializer):
         if Cart.objects.filter(user=data['user'], item=data['item']).exists():
             raise serializers.ValidationError({'errmsg':"You have already added this item to your cart."})
         else:
-            if data['user'].usertype != 'Customer':
+            if data['user'].usertype != 'customer':
                 raise serializers.ValidationError({'errmsg':"user isn't a customer"})
             else:
                 if data['quantity'] > data['item'].stock:
