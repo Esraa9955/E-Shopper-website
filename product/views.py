@@ -12,7 +12,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 
 
-# Ensure parsers are included in the view
+
 parser_classes = (MultiPartParser, FormParser)
 
 

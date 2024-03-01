@@ -8,11 +8,17 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ProductsSerlizer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True)
+    images = serializers.PrimaryKeyRelatedField(many=True, queryset=ProductImage.objects.all())
     class Meta:
         model = Product
         fields = '__all__'
        
 
+    def create(self, validated_data):
+        images_data = validated_data.pop('images', []) 
+        product = Product.objects.create(**validated_data)
+        product.images.set(images_data)
+        return product
 
     def create(self, validated_data):
          #** means 3aml el validate data k dict
@@ -31,7 +37,11 @@ class ProductsSerlizer(serializers.ModelSerializer):
         instance.save()
         return instance   
 
-
+    def create(self, validated_data):
+        images_data = validated_data.pop('images', []) 
+        product = Product.objects.create(**validated_data)
+        product.images.set(images_data)
+        return product
 
 
     def create(self, validated_data):
