@@ -8,10 +8,9 @@ from .serlizer import ProductsSerlizer
 from django.shortcuts import get_object_or_404
 from .filiters import ProductFilter
 from rest_framework.pagination import PageNumberPagination
-
 from rest_framework.parsers import MultiPartParser, FormParser
-
-
+from django.db.models import Avg
+from rest_framework import status
 
 parser_classes = (MultiPartParser, FormParser)
 
@@ -74,3 +73,34 @@ def deleteProduct(request, id):
         return Response({'msg': 'deleted'})
     return Response({'msg': 'product not found'})
 
+
+@api_view(['POST'])
+def addRate(request, pk):
+    product = get_object_or_404(Product, id=pk)
+    data = request.data
+ 
+    if 'rating' not in data:
+        return Response({"error": "Rating data is missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+    rate = product.rates
+    
+    if data['rating'] <= 0 or data['rating'] > 5:
+        return Response({"error": 'Please select between 1 to 5 only'}, status=status.HTTP_400_BAD_REQUEST) 
+    elif rate.exists():
+        new_rate = {'rating': data['rating']}
+        rate.update(**new_rate)
+
+        rating = product.rates.aggregate(avg_ratings=Avg('rating'))
+        product.ratings = rating['avg_ratings']
+        product.save()
+
+        return Response({'details': 'Product rate updated'})
+    else:
+        Rates.objects.create(
+            product=product,
+            rating=data['rating'],
+        )
+        rating = product.rates.aggregate(avg_ratings=Avg('rating'))
+        product.ratings = rating['avg_ratings']
+        product.save()
+        return Response({'details': 'Product rate created'})

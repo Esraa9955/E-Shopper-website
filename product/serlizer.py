@@ -9,10 +9,18 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class ProductsSerlizer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True)
     images = serializers.PrimaryKeyRelatedField(many=True, queryset=ProductImage.objects.all())
+
+    reviews = serializers.SerializerMethodField(method_name='get_rates',read_only=True)
+
+
     class Meta:
         model = Product
         fields = '__all__'
        
+    def get_rates(self,obj):
+        rates = obj.rates.all()
+        serializer = RateSerializer(rates,many=True)
+        return serializer.data
 
     def create(self, validated_data):
         images_data = validated_data.pop('images', []) 
@@ -54,5 +62,10 @@ class ProductsSerlizer(serializers.ModelSerializer):
 
      return product
 
+class RateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rates
+        fields = "__all__"
 
 
