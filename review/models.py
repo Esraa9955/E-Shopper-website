@@ -15,5 +15,9 @@ class Review(models.Model):
   def review_list(self):
         return self.objects.all()
 
+
+  @classmethod
+  def getReviewById(cls, id):
+        return cls.objects.get(id=id)
   
 

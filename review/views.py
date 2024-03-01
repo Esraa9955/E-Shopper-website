@@ -10,3 +10,10 @@ def listReviews(request):
     serializer = ReviewSerializer(reviews, many=True)
     return Response({'msg': 'accept', 'data': serializer.data})
 
+
+@api_view(['GET'])
+def getReview(request, id):
+    review = Review.getReviewById(id)
+    serializer = ReviewSerializer(review).data
+    return Response({'msg': 'accept', 'data':  serializer})
+
