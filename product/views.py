@@ -9,6 +9,13 @@ from django.shortcuts import get_object_or_404
 from .filiters import ProductFilter
 from rest_framework.pagination import PageNumberPagination
 
+from rest_framework.parsers import MultiPartParser, FormParser
+
+
+# Ensure parsers are included in the view
+parser_classes = (MultiPartParser, FormParser)
+
+
 @api_view(['GET'])
 def allProducts(request):
     filterproducts=ProductFilter(request.GET,queryset=Product.objects.all().order_by('id'))
@@ -39,6 +46,9 @@ def addProduct(request):
 
 
 
+
+
+
 @api_view(['PUT'])
 def updateProduct(request, id):
     updateobj = Product.objects.filter(id=id).first()
@@ -49,6 +59,10 @@ def updateProduct(request, id):
             print(serializedProduct.validated_data)  
             serializedProduct.save()  
             return Response(data=serializedProduct.data)
+
+
+
+
 
 
 

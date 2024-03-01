@@ -1,16 +1,21 @@
 from rest_framework import serializers
 from product.models import *
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ('image',)
 
 class ProductsSerlizer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True)
     class Meta:
         model = Product
         fields = '__all__'
-
+       
 
 
     def create(self, validated_data):
-        # ** means 3aml el validate data k dict
+         #** means 3aml el validate data k dict
         return Product.objects.create(**validated_data)
     
 
@@ -24,5 +29,20 @@ class ProductsSerlizer(serializers.ModelSerializer):
         instance.brand = validated_data.get('brand')
         instance.stock= validated_data.get('stock')
         instance.save()
-        return instance    
+        return instance   
+
+
+
+
+    def create(self, validated_data):
+     images_data = validated_data.pop('images', []) 
+     product = Product.objects.create(**validated_data)
+
+    
+     for image_data in images_data:
+        ProductImage.objects.create(product=product, **image_data)
+
+     return product
+
+
 
