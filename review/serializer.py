@@ -9,5 +9,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     
+    
+    
+    
+    def update(self, instance, validated_data):
+        instance.comment = validated_data.get('comment')
+        instance.save()
+        return instance
+    
 
     
+

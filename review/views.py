@@ -2,7 +2,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from review.models import *
 from .serializer import ReviewSerializer
-
+from rest_framework.response import Response
+from rest_framework import status
 
 @api_view(['GET'])
 def listReviews(request):
@@ -25,4 +26,19 @@ def addReview(request):
         obj.save()
         return Response({'msg': 'added'})
     return Response({'msg': 'wrong data', 'error': obj.errors})
+
+
+
+@api_view(['PUT'])
+def updateReview(request, id):
+    updateobj = Review.objects.filter(id=id).first()
+    if updateobj:
+        serializedReview = ReviewSerializer(
+            instance=updateobj, data=request.data)
+        if serializedReview.is_valid():
+            serializedReview.save()  
+            return Response(data=serializedReview.data)
+        else:
+            return Response({'errors': serializedReview.errors}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'msg': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)       
 
