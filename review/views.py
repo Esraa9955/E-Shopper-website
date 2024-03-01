@@ -1,3 +1,12 @@
-from django.shortcuts import render
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from review.models import *
+from .serializer import ReviewSerializer
 
-# Create your views here.
+
+@api_view(['GET'])
+def listReviews(request):
+    reviews = Review.review_list()
+    serializer = ReviewSerializer(reviews, many=True)
+    return Response({'msg': 'accept', 'data': serializer.data})
+

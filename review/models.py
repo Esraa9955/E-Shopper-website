@@ -1,13 +1,19 @@
 from django.db import models
 from product.models import Product
-# from users.models import Admin
+from django.conf import settings
 import datetime
+
+
 class Review(models.Model):
   product_id = models.ForeignKey(Product, on_delete=models.CASCADE)
-  # customer_id = models.ForeignKey(Customer, on_delete=models.CASCADE)
-  # admin_id = models.ForeignKey(Admin, on_delete=models.CASCADE)
-  comment= models.TextField(max_length=1000)
+  comment= models.CharField(max_length=100)
   date = models.DateField(default=datetime.datetime.today)
+  user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True, blank=True)
+
+
+  @classmethod
+  def review_list(self):
+        return self.objects.all()
 
   
 
