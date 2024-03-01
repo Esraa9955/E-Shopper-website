@@ -17,3 +17,12 @@ def getReview(request, id):
     serializer = ReviewSerializer(review).data
     return Response({'msg': 'accept', 'data':  serializer})
 
+@api_view(['POST'])
+def addReview(request):
+    obj = Review()
+    obj = ReviewSerializer(data=request.data)
+    if (obj.is_valid()):
+        obj.save()
+        return Response({'msg': 'added'})
+    return Response({'msg': 'wrong data', 'error': obj.errors})
+
