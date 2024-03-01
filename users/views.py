@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from rest_framework.exceptions import NotFound
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
@@ -11,6 +10,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.permissions import BasePermission
 from rest_framework import permissions
+import datetime
+from django.conf import settings
+from django.contrib.auth import authenticate
+from rest_framework import status
+
 
 
 # Create your views here.
@@ -24,32 +28,43 @@ class RegisterView(APIView):
     
 
 class LoginView(APIView):
+    def set_cookie(self, response, key, value, expire=None):
+        if expire is None:
+            max_age = 3600  
+        else:
+            max_age = expire
+        expires = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
+        response.set_cookie(key, value, max_age=max_age, expires=expires, secure=settings.SESSION_COOKIE_SECURE or None)
+
     def post(self, request):
-        email = request.data['email']
-        password = request.data['password']
+        email = request.data.get('email')
+        password = request.data.get('password')
 
-        user = User.objects.filter(email=email).first()
+        # Check if email and password are provided
+        if not email or not password:
+            return Response({'message': 'Email and password are required!'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Authenticate user
+        user = authenticate(request, email=email, password=password)
+        
         if user is None:
-            raise AuthenticationFailed('User not found!')
+            return Response({'message': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not user.check_password(password):
-            raise AuthenticationFailed('Incorrect password!')
-
+        # Generate JWT token
         payload = {
             'id': user.id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60), # expiration 1h
             'iat': datetime.datetime.utcnow() # tokenCreatedAt
         }
-
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
+        # Set JWT token as a cookie in the response
         response = Response()
+        self.set_cookie(response, key='jwt', value=token) 
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        response.data = {
-            'jwt': token  # Decode here if needed
-        }
+        # Return JWT token in response data
+        response.data = {'jwt': token}
+        
         return response
 
 
@@ -88,13 +103,31 @@ class allUsers(APIView):
     
 
     
-class IsAuthenticatedUser(BasePermission):
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
+# class IsAuthenticatedUser(BasePermission):
+#     def has_permission(self, request, view, id):
+#         is_authenticated = request.user.is_authenticated and request.user.id == id
+#         return is_authenticated
+
+        
+    
 
 @api_view(['PUT'])
-@permission_classes([permissions.IsAuthenticated, IsAuthenticatedUser])
 def UpdateUserView(request, id):
+    token = request.COOKIES.get('jwt')
+
+    # Check if user is authenticated
+    if not token:
+        raise AuthenticationFailed('Unauthenticated!')
+
+    try:
+        payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Unauthenticated!')
+
+    # Check if the authenticated user is the same as the user being updated
+    if payload['id'] != id:
+        return Response({'msg': 'You are not authorized to update this user'}, status=status.HTTP_403_FORBIDDEN)
+
     update_object = User.objects.filter(id=id).first()
     if update_object:
         serialized_user = UserSerializer(instance=update_object, data=request.data, partial=True)
@@ -103,18 +136,32 @@ def UpdateUserView(request, id):
             return Response(data=serialized_user.data)
         else:
             print(serialized_user.errors)  # Print serializer errors for debugging
-            return Response({'msg':'Invalid Data'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg': 'Invalid Data'}, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response({'msg':'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'msg': 'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
-@permission_classes([permissions.IsAuthenticated, IsAuthenticatedUser])
 def delete(request,id):
-  us=User.objects.filter(id=id).first()
-  if(us):
-     User.objects.filter(id=id).delete()
-     return Response({'msg':'User Deleted'}) 
-  return Response({'msg':'User Not Found'})
+    token = request.COOKIES.get('jwt')
+
+    # Check if user is authenticated
+    if not token:
+        raise AuthenticationFailed('Unauthenticated!')
+
+    try:
+        payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Unauthenticated!')
+
+    # Check if the authenticated user is the same as the user being deleted
+    if payload['id'] != id:
+        return Response({'msg': 'You are not authorized to delete this user'}, status=status.HTTP_403_FORBIDDEN)
+
+    us=User.objects.filter(id=id).first()
+    if(us):
+        User.objects.filter(id=id).delete()
+        return Response({'msg':'User Deleted'}) 
+    return Response({'msg':'User Not Found'})
 
 
 

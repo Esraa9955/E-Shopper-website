@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'review.apps.ReviewConfig',
     'cart.apps.CartConfig',
     'rest_framework' ,
+    'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
 ]
@@ -72,12 +73,12 @@ WSGI_APPLICATION = 'ecom.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 DATABASES = {
     'default': {
@@ -110,6 +111,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  
+    ),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -131,6 +137,7 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL= 'users.User'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
 
 
 MEDIA_URL = 'media/'  # This should be the URL where your media files are served from.
