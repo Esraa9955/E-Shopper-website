@@ -42,3 +42,11 @@ def updateReview(request, id):
             return Response({'errors': serializedReview.errors}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'msg': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)       
 
+
+@api_view(['DELETE'])
+def deleteReview(request, id):
+    review = Review.getReviewById(id)
+    if review is not None:  # Check if review exists
+        review.delete()
+        return Response({'msg': 'deleted'})
+    return Response({'msg': 'review not found'})

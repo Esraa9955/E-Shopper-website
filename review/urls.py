@@ -8,4 +8,5 @@ urlpatterns = [
    path('getReview/<int:id>',getReview,name='getReview'),
    path('addReview/',addReview,name='addReview'),
    path('updateReview/<int:id>',updateReview,name='updateReview'),
+   path('deleteReview/<int:id>',deleteReview,name='deleteReview'),
 ]
