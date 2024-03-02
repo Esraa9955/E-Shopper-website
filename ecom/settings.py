@@ -87,7 +87,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"123"
+        "PASSWORD":"12345"
 
     }
 }
@@ -116,6 +116,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',  
     ),
 }
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

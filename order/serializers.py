@@ -9,7 +9,7 @@ from .models import Order, OrderItem
 
         
 
-class OrderItemsSerializer(serializers.Serializer):
+class OrderItemsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = "__all__"

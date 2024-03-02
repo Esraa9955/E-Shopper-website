@@ -1,11 +1,18 @@
 from django.db import models
-from product.models import Product
-from django.contrib.auth.models import User
-# from users.models import DeliveryMan  # Uncomment this line if needed
-import datetime
-from django.contrib.auth import get_user_model
+from operator import mod 
+from django.conf import settings
+from users.models import User
+from django.contrib.auth.models import AbstractUser
 
-UserModel = get_user_model()
+
+
+from product.models import Product
+#from django.contrib.auth.models import User
+# from users.models import DeliveryMan  # Uncomment this line if needed
+#import datetime
+#from django.contrib.auth import get_user_model
+
+#UserModel = get_user_model()
 
 class Order(models.Model):
   PENDING_STATE = 'P'
@@ -22,7 +29,7 @@ class Order(models.Model):
   street = models.CharField(max_length=500, default="", blank=False)
   state = models.CharField(max_length=100, default="", blank=False)
   country = models.CharField(max_length=100, default="", blank=False)
-  buyer =  models.ForeignKey(UserModel,related_name="order", on_delete=models.CASCADE)
+  user = models.ForeignKey(User, related_name="order", on_delete=models.CASCADE)
   #user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
   total_price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
   order_number = models.CharField(max_length=250, blank=True, null=True)
