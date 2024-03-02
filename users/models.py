@@ -58,6 +58,7 @@ class User(AbstractUser):
     usertype = models.CharField(choices=USER_TYPE_CHOICES)
     address = models.CharField(max_length=100, default='')
     shopname = models.CharField(max_length=100, blank=True, null=True)
+    birthdate=models.DateField(null=True)
     
     REQUIRED_FIELDS = ['first_name', 'last_name','username']
 

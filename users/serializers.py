@@ -6,7 +6,7 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirm_password', 'phone', 'usertype', 'address', 'shopname', 'is_superuser']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirm_password', 'phone', 'usertype', 'address', 'shopname', 'is_superuser', 'birthdate']
         extra_kwargs = {
             'password': {'required': True, 'allow_blank': False, 'min_length': 8, 'write_only': True},
             'confirm_password': {'required': True, 'allow_blank': False,'min_length': 8, 'write_only': True },
@@ -51,4 +51,9 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+    def validate_phone(self, value):
+        if not value.startswith('+20'):
+            raise serializers.ValidationError("Mobile number must begin with +20.")
+        return value
     

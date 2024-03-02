@@ -14,6 +14,7 @@ import datetime
 from django.conf import settings
 from django.contrib.auth import authenticate
 from rest_framework import status
+from django.contrib.auth.hashers import check_password
 
 
 
@@ -141,7 +142,7 @@ def UpdateUserView(request, id):
         return Response({'msg': 'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
-def delete(request,id):
+def delete(request, id):
     token = request.COOKIES.get('jwt')
 
     # Check if user is authenticated
@@ -157,13 +158,27 @@ def delete(request,id):
     if payload['id'] != id:
         return Response({'msg': 'You are not authorized to delete this user'}, status=status.HTTP_403_FORBIDDEN)
 
-    us=User.objects.filter(id=id).first()
-    if(us):
-        User.objects.filter(id=id).delete()
-        return Response({'msg':'User Deleted'}) 
-    return Response({'msg':'User Not Found'})
+    # Get the password from the request
+    password = request.data.get('password', '')
 
+    # Check if the password is provided
+    if not password:
+        return Response({'msg': 'Please provide your password to delete your account'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Get the user
+    user = User.objects.filter(id=id).first()
+
+    # Check if user exists
+    if not user:
+        return Response({'msg': 'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Verify the password
+    if not check_password(password, user.password):
+        return Response({'msg': 'Incorrect password'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Delete the user
+    user.delete()
+    return Response({'msg': 'User Deleted'})
 
 
 
