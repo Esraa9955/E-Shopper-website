@@ -1,20 +1,18 @@
 from django.shortcuts import render
-from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
 import jwt, datetime
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework import status
-from rest_framework.permissions import BasePermission
-from rest_framework import permissions
 import datetime
 from django.conf import settings
 from django.contrib.auth import authenticate
 from rest_framework import status
 from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 
@@ -64,7 +62,13 @@ class LoginView(APIView):
         self.set_cookie(response, key='jwt', value=token) 
 
         # Return JWT token in response data
-        response.data = {'jwt': token}
+        response.data = {
+            "message":"success",
+            "token": token,  # Decode here if needed
+            "user": UserSerializer(user).data
+        }
+        return response
+
         
         return response
 
@@ -101,15 +105,6 @@ class allUsers(APIView):
         users=User.usersList()
         dataJSON=UserSerializer(users,many=True).data
         return Response({'model':'User', 'Users':dataJSON}) 
-    
-
-    
-# class IsAuthenticatedUser(BasePermission):
-#     def has_permission(self, request, view, id):
-#         is_authenticated = request.user.is_authenticated and request.user.id == id
-#         return is_authenticated
-
-        
     
 
 @api_view(['PUT'])

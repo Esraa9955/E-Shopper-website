@@ -112,6 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
+    'NON_FIELD_ERRORS_KEY': 'error',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',  
     ),
@@ -143,6 +144,15 @@ CORS_ALLOW_CREDENTIALS = True
 
 MEDIA_URL = 'media/'  # This should be the URL where your media files are served from.
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/') 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "taghreedmuhammed7@gmail.com"
+EMAIL_HOST_PASSWORD = "czdqojphxvnwkkvk"
+TAGGIT_CASE_INSENSITIVE = True
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

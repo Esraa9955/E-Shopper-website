@@ -4,12 +4,13 @@ from rest_framework import serializers
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
+    # confirmPassword = serializers.CharField()
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirm_password', 'phone', 'usertype', 'address', 'shopname', 'is_superuser', 'birthdate']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirmPassword', 'phone', 'usertype', 'address', 'shopname', 'is_superuser', 'birthdate']
         extra_kwargs = {
-            'password': {'required': True, 'allow_blank': False, 'min_length': 8, 'write_only': True},
-            'confirm_password': {'required': True, 'allow_blank': False,'min_length': 8, 'write_only': True },
+            'password': {'required': True, 'allow_blank': False, 'min_length': 8},
+            'confirmPassword': {'required': True, 'allow_blank': False,'min_length': 8 },
             'email': {'required': True, 'allow_blank': False},
             'first_name': {'required': True, 'allow_blank': False},
             'last_name': {'required': True, 'allow_blank': False},
@@ -24,18 +25,24 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        if attrs['password'] != attrs.pop('confirm_password'):
+        if attrs['password'] != attrs.pop('confirmPassword'):
             raise serializers.ValidationError("The passwords do not match.")
         return attrs
 
+        
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        validated_data.pop('confirm_password', None)
-        user = super().create(validated_data)
-        if password:
-            user.set_password(password)
-            user.save()
-        return user
+        cpassword = validated_data.pop('confirmPassword', None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        if cpassword is not None:
+            instance.confirmPassword=password
+
+
+        instance.save()
+        return instance
     
 
     def update(self, instance, validated_data):
