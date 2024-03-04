@@ -19,7 +19,7 @@ parser_classes = (MultiPartParser, FormParser)
 def allProducts(request):
     filterproducts=ProductFilter(request.GET,queryset=Product.objects.all().order_by('id'))
     paginator = PageNumberPagination()
-    paginator.page_size = 2
+    paginator.page_size = 12
     queryset =  paginator.paginate_queryset(filterproducts.qs, request)
     productsjson=ProductsSerlizer(queryset,many=True).data
     return Response({'products':productsjson})
