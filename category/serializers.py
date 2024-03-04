@@ -1,10 +1,14 @@
 
-from .models import Category
+from .models import Category, SubCategory
 from rest_framework import serializers
-from rest_framework_recursive.fields import RecursiveField
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
-  #children = serializers.ListSerializer(child=RecursiveField(), required=False)
+  children = SubCategorySerializer(many=True, read_only=True)
   class Meta:
       model = Category
       fields = '__all__'

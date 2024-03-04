@@ -1,6 +1,6 @@
 from django.db import models
 # from users.models import Admin
-
+#from category.models import Category
 #categories of products
 class Category(models.Model):
   name=models.CharField(max_length=255)
@@ -13,3 +13,10 @@ class Category(models.Model):
 
   def __str__(self):
     return self.name
+  
+
+class SubCategory(models.Model):
+    name=models.CharField(max_length=200)
+    parentCategory=models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE,related_name='chiled' )
+    def __str__(self):
+        return self.name
