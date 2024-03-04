@@ -70,7 +70,7 @@ class LoginView(APIView):
         return response
 
         
-        return response
+
 
 
 class UserView(APIView):
@@ -174,6 +174,3 @@ def delete(request, id):
     # Delete the user
     user.delete()
     return Response({'msg': 'User Deleted'})
-
-
-
