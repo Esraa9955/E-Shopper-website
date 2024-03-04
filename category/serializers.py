@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework_recursive.fields import RecursiveField
 
 class CategorySerializer(serializers.ModelSerializer):
-  children = serializers.ListSerializer(child=RecursiveField(), required=False)
+  #children = serializers.ListSerializer(child=RecursiveField(), required=False)
   class Meta:
       model = Category
-      fields = ['id', 'name', 'children']
+      fields = '__all__'
