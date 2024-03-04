@@ -19,6 +19,10 @@ class Product(models.Model):
     new = models.BooleanField(default=False)
     sale = models.BooleanField(default=False)
     newprice = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock_S = models.IntegerField(default=0)
+    stock_M = models.IntegerField(default=0)
+    stock_L = models.IntegerField(default=0)
+    stock_XL = models.IntegerField(default=0)
 
 
     thumbnail = models.ImageField(upload_to='product/images/', default='static/images/notfound.png')
@@ -28,6 +32,11 @@ class Product(models.Model):
         super().clean()
         if self.sale and self.newprice >= self.price:
             raise ValidationError("New price must be less than the original price if the product is on sale.")
+        
+    def save(self, *args, **kwargs):
+        if self.category.name == "Clothes":
+            self.stock = sum([getattr(self, f"stock_{size}") for size in ['S', 'M', 'L', 'XL']])
+        super().save(*args, **kwargs)
 
 class ProductImage(models.Model):
     image = models.ImageField(upload_to='product/images/',default='static/images/notfound.png')
