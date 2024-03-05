@@ -3,24 +3,15 @@ from cart.models import *
 
 
 class CartSerlizer(serializers.ModelSerializer):
-    item_image = serializers.ImageField(source='item.image', read_only=True)
     def validate(self, data):
-        user = self.context['request'].user
-        item = data.get('item')
-        quantity = data.get('quantity')
-
-        # Check if the user is a customer
-        if user.usertype != 'customer':
-            raise serializers.ValidationError({'error': "User isn't a customer."})
-
-        # Check if the quantity is valid
-        if quantity <= 0:
-            raise serializers.ValidationError({'error': "Quantity must be greater than zero."})
-
-        # Check if the quantity exceeds the item stock
-        if item and quantity > item.stock:
-            raise serializers.ValidationError({'error': "Quantity exceeds stock."})
-
+        if Cart.objects.filter(user=data['user'], item=data['item']).exists():
+            raise serializers.ValidationError({'errmsg':"You have already added this item to your cart."})
+        else:
+            if data['user'].usertype != 'customer':
+                raise serializers.ValidationError({'errmsg':"user isn't a customer"})
+            else:
+                if data['quantity'] > data['item'].stock:
+                    raise serializers.ValidationError({'errmsg':"more than stock"})
         return data
     class Meta:
         model = Cart
@@ -29,5 +20,5 @@ class CartSerlizer(serializers.ModelSerializer):
 
 
     def create(self, validated_data):
+        # ** means 3aml el validate data k dict
         return Cart.objects.create(**validated_data)
-    
