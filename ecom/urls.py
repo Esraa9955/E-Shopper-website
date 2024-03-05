@@ -5,6 +5,7 @@ from django.conf import settings
 
 
 urlpatterns = [
+
     path('admin/', admin.site.urls),
     path('API/',include('product.urls')),
     path('API/',include('category.urls')),
@@ -12,4 +13,6 @@ urlpatterns = [
     path('api/', include('users.urls')),
     path('api/cart/', include('cart.urls')),
     path('API/Review/',include('review.urls')),
+    path('api-auth/', include('rest_framework.urls')),
+
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -13,14 +13,14 @@ from .models import Order,OrderItem
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def get_orders(request):
     orders = Order.objects.all()
     serializer = OrderSerializer(orders,many=True)
     return Response({'orders':serializer.data})
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def get_order(request,pk):
     order =get_object_or_404(Order, id=pk)
 
@@ -29,7 +29,7 @@ def get_order(request,pk):
 
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated,IsAdminUser])
+#@permission_classes([IsAuthenticated,IsAdminUser])
 def process_order(request,pk):
     order =get_object_or_404(Order, id=pk)
     order.status = request.data['status']
@@ -40,7 +40,7 @@ def process_order(request,pk):
 
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def delete_order(request,pk):
     order =get_object_or_404(Order, id=pk) 
     order.delete()
@@ -53,30 +53,17 @@ def delete_order(request,pk):
 @api_view(['POST'])
 #@permission_classes([IsAuthenticated])
 def new_order(request):
-    token = request.COOKIES.get('jwt')
-
-    if not token:
-        raise AuthenticationFailed('Unauthenticated!')
-
-    try:
-        payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed('Unauthenticated!')
-    
-    if payload['id'] != user.id:  # Use user.id instead of id
-        return Response({'msg': 'You are not authorized to create this order'}, status=status.HTTP_403_FORBIDDEN)
-    print(request.user)
+   
+    #print(request.user)
     print(request.data)
-    user= request.user 
+    #user= request.user 
     data = request.data
-    order_items = data.get('order_Items', [])
-
-    if not order_items:
-        return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
-
+    order_items = data['order_Items']
+    print(order_items)
 
     if order_items and len(order_items) == 0:
-      return Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
+    
     else:
         total_price = sum( item['price']* item['quantity'] for item in order_items)
         order = Order.objects.create(
@@ -84,9 +71,11 @@ def new_order(request):
             city = data['city'],
             zip_code = data['zip_code'],
             street = data['street'],
-            #phone_no = data['phone_no'],
+            phone_number = data['phone_number'],
             country = data['country'],
             total_price = total_price,
+            
+            state=data['state'],
         )
         for i in order_items:
             product = Product.objects.get(id=i['product'])
