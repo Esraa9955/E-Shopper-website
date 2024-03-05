@@ -7,13 +7,15 @@ class UserSerializer(serializers.ModelSerializer):
     # confirmPassword = serializers.CharField()
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirmPassword', 'phone', 'usertype', 'address', 'shopname', 'is_superuser', 'birthdate']
+        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'confirmPassword', 'phone', 'usertype', 'address', 'shopname', 'is_superuser', 'birthdate', 'is_verified', 'verification_token']
         extra_kwargs = {
             'password': {'required': True, 'allow_blank': False, 'min_length': 8},
             'confirmPassword': {'required': True, 'allow_blank': False,'min_length': 8 },
             'email': {'required': True, 'allow_blank': False},
             'first_name': {'required': True, 'allow_blank': False},
             'last_name': {'required': True, 'allow_blank': False},
+            'is_verified': {'read_only': True},
+            'verification_token': {'read_only': True},
         }
 
     def validate_shopname(self, value):

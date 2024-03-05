@@ -12,8 +12,11 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from rest_framework import status
 from django.contrib.auth.hashers import check_password
-from rest_framework_simplejwt.tokens import RefreshToken
-
+import secrets
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from .utils import generate_verification_token
+from django.template.loader import render_to_string
 
 
 # Create your views here.
@@ -22,8 +25,18 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        user = serializer.save()
+
+        # Generate verification token
+        token = generate_verification_token()
+        user.verification_token = token
+        user.save()
+
+        # Send verification email
+        send_verification_email(user)
+
         return Response(serializer.data)
+
     
 
 class LoginView(APIView):
@@ -99,6 +112,8 @@ class LogoutView(APIView):
     def post(self, request):
         response = Response()
         response.delete_cookie('jwt')
+        response.delete_cookie('token')
+        response.delete_cookie('user')
         response.data = {
             'message': 'Logout success.'
         }
@@ -178,3 +193,24 @@ def delete(request, id):
     # Delete the user
     user.delete()
     return Response({'msg': 'User Deleted'})
+
+
+
+def verify_email(request):
+    token = request.GET.get('token')
+    if token:
+        try:
+            user = User.objects.get(verification_token=token)
+            user.is_verified = True
+            user.save()
+            return HttpResponse('Email verified successfully!')
+        except User.DoesNotExist:
+            return HttpResponse('Invalid token!')
+    else:
+        return HttpResponse('Token parameter is missing!')
+    
+
+def send_verification_email(user):
+    subject = 'Email Verification'
+    message = f'Click the following link to verify your email: http://localhost:8000/verify-email?token={user.verification_token}'
+    send_mail(subject, message, 'taghreedmuhammed7@gmail.com', [user.email])

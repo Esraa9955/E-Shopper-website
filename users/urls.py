@@ -11,5 +11,6 @@ urlpatterns = [
         path('logout/', LogoutView.as_view()),
         path('allUser/', allUsers.as_view()),
         path('update/<int:id>/',UpdateUserView),
-        path('delete/<int:id>/',delete)
+        path('delete/<int:id>/',delete),
+        path('verify-email/', verify_email, name='verify_email')
 ]

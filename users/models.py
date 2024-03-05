@@ -10,34 +10,6 @@ from django.contrib.auth.hashers import make_password
 #   password=models.CharField(max_length=100)
 #   role=models.CharField(max_length=50)
 
-
-# class User(AbstractUser):
-#   username=models.CharField(max_length=255, unique=True)
-#   first_name=models.CharField(max_length=255)
-#   last_name=models.CharField(max_length=255)
-#   email=models.EmailField(max_length=255, unique=True)
-#   password=models.CharField(max_length=255)
-#   confirm_password=models.CharField(max_length=255,default='')
-#   shopname = models.CharField(max_length=255, blank=True)
-#   phone = models.CharField(max_length=15, default=None)
-#   USER_TYPE_CHOICES = [
-#         ('customer', 'Customer'),
-#         ('vendor', 'Vendor'),
-#     ]
-#   usertype = models.CharField(max_length=20, choices=USER_TYPE_CHOICES,default="customer")
-
-#   REQUIRED_FIELDS = []
-  # USERNAME_FIELD = 'username'
-
-# class Vendor(models.Model):
-#   admin_id=models.ForeignKey(Admin,on_delete=models.CASCADE)
-#   Name=models.CharField(max_length=100)
-#   email=models.EmailField(max_length=100)
-#   phone=models.CharField(max_length=50)
-#   payment_terms=models.CharField(max_length=200)
-#   contact_person=models.CharField(max_length=200)
-
-
 # class DeliveryMan(models.Model):
 #   name=models.CharField(max_length=100)
 #   phone=models.CharField(max_length=50)
@@ -60,6 +32,8 @@ class User(AbstractUser):
     address = models.CharField(max_length=100, default='')
     shopname = models.CharField(max_length=100,blank=True,default='')
     birthdate=models.DateField(null=True)
+    is_verified = models.BooleanField(default=False)
+    verification_token = models.CharField(max_length=100, blank=True, null=True)
     
     REQUIRED_FIELDS = ['first_name', 'last_name','username']
 
