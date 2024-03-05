@@ -56,6 +56,10 @@ class LoginView(APIView):
             'iat': datetime.datetime.utcnow() # tokenCreatedAt
         }
         token = jwt.encode(payload, 'secret', algorithm='HS256')
+        token = jwt.encode(payload, 'secret', algorithm='HS256')
+        print(token)
+        user_id=jwt.decode(token,'secret', algorithms=['HS256'])['id']
+        print(User.objects.get(id=user_id))
 
         # Set JWT token as a cookie in the response
         response = Response()
