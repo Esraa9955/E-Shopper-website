@@ -22,7 +22,7 @@ def allProducts(request):
     paginator.page_size = 12
     queryset =  paginator.paginate_queryset(filterproducts.qs, request)
     productsjson=ProductsSerlizer(queryset,many=True).data
-    return Response({'products':productsjson})
+    return paginator.get_paginated_response({'products': productsjson})
 
 @api_view(['GET'])
 def getproductbyid(request, id):
