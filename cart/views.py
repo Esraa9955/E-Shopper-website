@@ -10,15 +10,32 @@ from rest_framework import status
 
 @api_view(['POST'])
 def addToCart(request):
-  serializer = CartSerlizer(data=request.data)
-  if serializer.is_valid():
-      serializer.save()
-      cart = serializer.instance
-      total_item_price = cart.get_total_item_price()
-      return Response({'msg': 'added','total_item_price': total_item_price})
-  else:
-      print(serializer.errors)
-      return Response({'msg': 'wrong data', 'error': serializer.errors})
+    serializer = CartSerlizer(data=request.data)
+    if serializer.is_valid():
+        user = request.user
+        item = serializer.validated_data['item']
+
+        # Check if the user has already added the same item to the cart
+        existing_cart_item = Cart.objects.filter(user=user, item=item).first()
+        if existing_cart_item:
+            # If the item already exists in the cart, increase the quantity if less than stock
+            quantity_to_add = serializer.validated_data['quantity']
+            if existing_cart_item.quantity + quantity_to_add > item.stock:
+                return Response({'msg': 'Quantity exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                existing_cart_item.quantity += quantity_to_add
+                existing_cart_item.save()
+                total_item_price = existing_cart_item.get_total_item_price()
+                return Response({'msg': 'Quantity increased in cart', 'total_item_price': total_item_price}, status=status.HTTP_200_OK)
+        else:
+            # If the item does not exist in the cart, create a new cart item
+            serializer.save(user=user)
+            cart = serializer.instance
+            total_item_price = cart.get_total_item_price()
+            return Response({'msg': 'Item added to cart', 'total_item_price': total_item_price}, status=status.HTTP_201_CREATED)
+    else:
+        errors = serializer.errors
+        return Response({'msg': 'Invalid data', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
   
 
 @api_view(['DELETE'])
