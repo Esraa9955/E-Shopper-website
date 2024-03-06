@@ -88,7 +88,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"123"
+        "PASSWORD":"1411"
 
     }
 }
@@ -115,6 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'error',
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',  
     ),
 }

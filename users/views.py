@@ -19,6 +19,7 @@ from .utils import generate_verification_token
 from django.template.loader import render_to_string
 
 
+
 # Create your views here.
 
 class RegisterView(APIView):
