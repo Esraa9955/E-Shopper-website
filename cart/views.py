@@ -8,18 +8,49 @@ from .serlizer import CartSerlizer
 from rest_framework import status
 
 
+# @api_view(['POST'])
+# def addToCart(request):
+#   serializer = CartSerlizer(data=request.data)
+#   if serializer.is_valid():
+#       serializer.save()
+#       cart = serializer.instance
+#       total_item_price = cart.get_total_item_price()
+#       return Response({'msg': 'added','total_item_price': total_item_price})
+#   else:
+#       print(serializer.errors)
+#       return Response({'msg': 'wrong data', 'error': serializer.errors})
+
 @api_view(['POST'])
 def addToCart(request):
-  serializer = CartSerlizer(data=request.data)
-  if serializer.is_valid():
-      serializer.save()
-      cart = serializer.instance
-      total_item_price = cart.get_total_item_price()
-      return Response({'msg': 'added','total_item_price': total_item_price})
-  else:
-      print(serializer.errors)
-      return Response({'msg': 'wrong data', 'error': serializer.errors})
-  
+    user = request.data["user"]
+    item = request.data["item"]
+    itemStock = Product.objects.get(id=item).stock
+    quantity = request.data["quantity"]
+    # print(request.data)
+    if Cart.objects.filter(user=user, item=item).exists():
+        existing_cart_item = Cart.objects.filter(user=user, item=item).first()
+        if existing_cart_item:
+            new_quantity = existing_cart_item.quantity + int(quantity)
+            if new_quantity <= existing_cart_item.item.stock:
+                existing_cart_item.quantity = new_quantity
+                existing_cart_item.save()
+            total_item_price = existing_cart_item.get_total_item_price()
+            return Response({'msg': 'Quantity updated in cart', 'total_item_price': total_item_price}, status=status.HTTP_200_OK)
+        else:
+            return Response({'msg': 'No item found in the cart to update'}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        if itemStock >= quantity:
+            serializer = CartSerlizer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                cart = serializer.instance
+                total_item_price = cart.get_total_item_price()
+                return Response({'msg': 'added', 'total_item_price': total_item_price}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'msg': 'Quantity exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
+    
 
 @api_view(['DELETE'])
 def deleteFromCart(request, cart_id):
