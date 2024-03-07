@@ -67,7 +67,9 @@ def new_order(request):
     else:
         total_price = sum( item['price']* item['quantity'] for item in order_items)
         order = Order.objects.create(
-            
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            email=data['email'],
             city = data['city'],
             zip_code = data['zip_code'],
             street = data['street'],

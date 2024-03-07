@@ -13,6 +13,14 @@ from product.models import Product
 #from django.contrib.auth import get_user_model
 
 #UserModel = get_user_model()
+class PaymentStatus(models.TextChoices):
+    PAID = 'Paid'
+    UNPAID = 'Unpaid' 
+
+class PaymentMode(models.TextChoices):
+    COD = 'COD'
+    CARD = 'CARD' 
+
 
 class Order(models.Model):
   PENDING_STATE = 'P'
@@ -24,6 +32,9 @@ class Order(models.Model):
       (SHIPPED_STATE, "shipped"),
       (DELIVERED_STATE, "delivered")
   ]
+  first_name= models.CharField(max_length=255,default='',blank=False)
+  last_name= models.CharField(max_length=255,default='',blank=False)
+  email= models.EmailField(max_length=255,default='',blank=False)
   city = models.CharField(max_length=400, default="", blank=False)
   zip_code = models.CharField(max_length=100, default="", blank=False)
   street = models.CharField(max_length=500, default="", blank=False)
@@ -35,15 +46,14 @@ class Order(models.Model):
   total_price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
   order_number = models.CharField(max_length=250, blank=True, null=True)
   #delivery_man_id = models.ForeignKey(DeliveryMan,on_delete=models.CASCADE)
-  #payment_method = models.ForeignKey(Payment,on_delete=models.CASCADE)
+  payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
+  payment_mode = models.CharField(max_length=30, choices=PaymentMode.choices, default=PaymentMode.COD)
   placed_at= models.DateField(auto_now_add=True)
   status = models.CharField(
         max_length=50, choices=ORDER_STATUS_CHOICES, default=PENDING_STATE
     )
   is_paid = models.BooleanField(default=False)
-  #address = models.ForeignKey(
-  #      Address, related_name="order_address", on_delete=models.CASCADE
-  #  )
+
 
   def __str__(self):
      return str(self.id)
