@@ -49,7 +49,20 @@ def addToCart(request):
             else:
                 return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'msg': 'Quantity exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
+            # return Response({'msg': 'Quantity exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
+            data = {
+                "user": user,
+                "item": item,
+                "quantity": itemStock
+            }
+            serializer = CartSerlizer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                cart = serializer.instance
+                total_item_price = cart.get_total_item_price()
+                return Response({'msg': 'added', 'total_item_price': total_item_price}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 
 @api_view(['DELETE'])
