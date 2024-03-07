@@ -12,6 +12,7 @@ urlpatterns = [
     path('API/',include('category.urls')),
     path('API/',include('order.urls')),
     path('api/', include('users.urls')),
+    path('api/', include('plan.urls')),
     path('api/cart/', include('cart.urls')),
     path('API/Review/',include('review.urls')),
     path('api-auth/', include('rest_framework.urls')),

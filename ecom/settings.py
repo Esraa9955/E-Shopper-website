@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
+    'plan',
 ]
 
 MIDDLEWARE = [
@@ -88,7 +89,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"12345"
+        "PASSWORD":"123"
 
     }
 }
@@ -164,3 +165,7 @@ TAGGIT_CASE_INSENSITIVE = True
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5qunHFjBLc85NNFNlDoJR9Z5lGJMoFL40bGxh00oVXVBwJQ"
+STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
+SITE_URL='http://localhost:3000/'
