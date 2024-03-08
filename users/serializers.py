@@ -2,6 +2,10 @@ from rest_framework import serializers
 # from django.contrib.auth.models import User
 # from .models import Profile
 from .models import User
+from django.contrib.auth.password_validation import validate_password as django_validate_password
+import re
+from django.contrib.auth.hashers import make_password
+
 
 class UserSerializer(serializers.ModelSerializer):
     # confirmPassword = serializers.CharField()
@@ -26,22 +30,26 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Shop name is for vendors only.")
         return value
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs.pop('confirmPassword'):
-            raise serializers.ValidationError("The passwords do not match.")
-        return attrs
+    def validate_password(self, value):
+        if not re.search(r"[A-Z]", value):
+            raise serializers.ValidationError("Password must contain at least one uppercase character.")
+        if not re.search(r"[!@#$%^&*]", value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+        django_validate_password(value)
+        return value
 
         
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        cpassword = validated_data.pop('confirmPassword', None)
+        confirm_password = validated_data.pop('confirmPassword', None)
         instance = self.Meta.model(**validated_data)
+        
+        # Hash the password and confirm_password before saving
         if password is not None:
-            instance.set_password(password)
-        if cpassword is not None:
-            instance.confirmPassword=password
-
+            instance.password = make_password(password)
+        if confirm_password is not None:
+            instance.confirmPassword = make_password(confirm_password)
 
         instance.save()
         return instance

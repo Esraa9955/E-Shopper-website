@@ -16,14 +16,15 @@ import secrets
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from .utils import generate_verification_token
-from django.template.loader import render_to_string
-
-
 
 # Create your views here.
 
 class RegisterView(APIView):
     def post(self, request):
+        email = request.data.get('email')
+        if User.objects.filter(email=email).exists():
+            return Response({'message': 'This Email Is already Exists!'}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -37,6 +38,7 @@ class RegisterView(APIView):
         send_verification_email(user)
 
         return Response(serializer.data)
+
 
     
 
@@ -159,39 +161,22 @@ def UpdateUserView(request, id):
 @api_view(['DELETE'])
 def delete(request, id):
     token = request.COOKIES.get('jwt')
-
-    # Check if user is authenticated
     if not token:
         raise AuthenticationFailed('Unauthenticated!')
-
     try:
         payload = jwt.decode(token, 'secret', algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
         raise AuthenticationFailed('Unauthenticated!')
-
-    # Check if the authenticated user is the same as the user being deleted
     if payload['id'] != id:
         return Response({'msg': 'You are not authorized to delete this user'}, status=status.HTTP_403_FORBIDDEN)
-
-    # Get the password from the request
     password = request.data.get('password', '')
-
-    # Check if the password is provided
     if not password:
         return Response({'msg': 'Please provide your password to delete your account'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Get the user
     user = User.objects.filter(id=id).first()
-
-    # Check if user exists
     if not user:
         return Response({'msg': 'User Not Found'}, status=status.HTTP_404_NOT_FOUND)
-
-    # Verify the password
     if not check_password(password, user.password):
         return Response({'msg': 'Incorrect password'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # Delete the user
     user.delete()
     return Response({'msg': 'User Deleted'})
 
@@ -204,7 +189,7 @@ def verify_email(request):
             user = User.objects.get(verification_token=token)
             user.is_verified = True
             user.save()
-            return HttpResponse('Email verified successfully!')
+            return HttpResponse('<h1>Email verified successfully!</h1> <a href="http://localhost:3000/login">Go To Login Page</a>')
         except User.DoesNotExist:
             return HttpResponse('Invalid token!')
     else:
