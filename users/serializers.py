@@ -4,7 +4,6 @@ from rest_framework import serializers
 from .models import User
 from django.contrib.auth.password_validation import validate_password as django_validate_password
 import re
-from django.contrib.auth.hashers import make_password
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,14 +41,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        confirm_password = validated_data.pop('confirmPassword', None)
+        cpassword = validated_data.pop('confirmPassword', None)
         instance = self.Meta.model(**validated_data)
-        
-        # Hash the password and confirm_password before saving
         if password is not None:
-            instance.password = make_password(password)
-        if confirm_password is not None:
-            instance.confirmPassword = make_password(confirm_password)
+            instance.set_password(password)
+        if cpassword is not None:
+            instance.confirmPassword=password
+
 
         instance.save()
         return instance
