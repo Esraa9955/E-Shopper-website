@@ -63,48 +63,45 @@ def delete_order(request,pk):
 
 
 @api_view(['POST'])
-#@permission_classes([IsAuthenticated])
 def new_order(request):
-   
-    #print(request.user)
-    print(request.data)
-    #user= request.user 
     data = request.data
-    order_items = data['order_Items']
-    print(order_items)
+    order_items = data.get('order_Items', [])
 
-    if order_items and len(order_items) == 0:
+    if not order_items or len(order_items) == 0:
         return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    else:
-        total_price = sum( item['price']* item['quantity'] for item in order_items)
-        order = Order.objects.create(
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-            email=data['email'],
-            city = data['city'],
-            zip_code = data['zip_code'],
-            street = data['street'],
-            phone_number = data['phone_number'],
-            country = data['country'],
-            total_price = total_price,
-            
-            state=data['state'],
+
+    zip_code = data.get('zip_code')
+    if zip_code is None:
+        return Response({'error': 'zip_code is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    total_price = sum(float(item['price']) * int(item['quantity']) for item in order_items)
+    order = Order.objects.create(
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        email=data['email'],
+        city=data['city'],
+        zip_code=zip_code,
+        street=data['street'],
+        phone_number=data['phone_number'],
+        country=data['country'],
+        total_price=total_price,
+        state=data['state'],
+    )
+
+    for i in order_items:
+        product = Product.objects.get(id=i['product'])
+        item = OrderItem.objects.create(
+            product=product,
+            order=order,
+            name=product.name,
+            quantity=i['quantity'],
+            price=i['price']
         )
-        for i in order_items:
-            product = Product.objects.get(id=i['product'])
-            item = OrderItem.objects.create(
-                product= product,
-                order = order,
-                name = product.name,
-                quantity = i['quantity'],
-                price = i['price']
-            )
-            product.stock -= item.quantity
-            product.save()
-        serializer = OrderSerializer(order,many=False)
-        return Response(serializer.data)
-    
+        product.stock -= item.quantity
+        product.save()
+
+    serializer = OrderSerializer(order, many=False)
+    return Response(serializer.data)
 
 
 #payment
