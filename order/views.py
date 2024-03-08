@@ -9,8 +9,20 @@ from users.views import *
 from product.models import Product   
 from .serializers import OrderSerializer
 from .models import Order,OrderItem
-# Create your views here.
-
+# checkout 
+from rest_framework import response
+from django.http import HttpResponse
+import stripe
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, redirect
+from rest_framework.generics import RetrieveAPIView
+from rest_framework import permissions
+#from payment.serializers import ProductSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.conf import settings
 
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
@@ -92,3 +104,41 @@ def new_order(request):
             product.save()
         serializer = OrderSerializer(order,many=False)
         return Response(serializer.data)
+    
+
+
+#payment
+stripe.api_key=settings.STRIPE_SECRET_KEY
+
+API_URL="http/locahost:8000"
+class CreateCheckOutSession(APIView):
+    def post(self, request, *args, **kwargs):
+        orderitem_id=self.kwargs["pk"]
+        try:
+            order_item=OrderItem.objects.get(id=orderitem_id)
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                        'price_data': {
+                            'currency':'usd',
+                             'unit_amount':int(orderitem_id.price) * 100,
+                             'product_data':{
+                                 'name':orderitem_id.name,
+                                 'images':[f"{API_URL}/{orderitem_id.product_image}"]
+
+                             }
+                        },
+                        'quantity': 1,
+                    },
+                ],
+                metadata={
+                    "product_id":orderitem_id.id
+                },
+                mode='payment',
+                success_url=settings.SITE_URL + '?success=true',
+                cancel_url=settings.SITE_URL + '?canceled=true',
+            )
+            return redirect(checkout_session.url)
+        except Exception as e:
+            return Response({'msg':'something went wrong while creating stripe session','error':str(e)}, status=500)
