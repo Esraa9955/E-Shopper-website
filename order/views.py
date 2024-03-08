@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated ,IsAdminUser
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-import jwt, datetime
+from cart.models import Cart
 from users.views import *
 from product.models import Product   
 from .serializers import OrderSerializer
@@ -99,7 +99,9 @@ def new_order(request):
         )
         product.stock -= item.quantity
         product.save()
-
+    
+    cart_items = Cart.objects.filter()
+    cart_items.delete()
     serializer = OrderSerializer(order, many=False)
     return Response(serializer.data)
 
