@@ -25,6 +25,8 @@ from rest_framework.views import APIView
 from django.conf import settings
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import authentication_classes
+from django.http import Http404
+from django.db import transaction
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
@@ -66,8 +68,9 @@ def delete_order(request,pk):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
+@transaction.atomic
+#@permission_classes([IsAuthenticated])
+#@authentication_classes([TokenAuthentication])
 def new_order(request):
     data = request.data
     order_items = data.get('order_Items', [])
@@ -94,6 +97,26 @@ def new_order(request):
     )
 
     for i in order_items:
+        try:
+            with transaction.atomic():
+                product = Product.objects.get(id=i['product'])
+                item = OrderItem.objects.create(
+                    product=product,
+                    order=order,
+                    name=product.name,
+                    quantity=i['quantity'],
+                    price=i['price']
+                )
+                product.stock -= item.quantity
+                product.save()
+        except Product.DoesNotExist:
+            return Response({'error': f'Product with ID {i["product"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    cart_items = Cart.objects.filter()
+    cart_items.delete()
+    serializer = OrderSerializer(order, many=False)
+    return Response(serializer.data)
+
+'''    for i in order_items:
         product = Product.objects.get(id=i['product'])
         item = OrderItem.objects.create(
             product=product,
@@ -109,7 +132,7 @@ def new_order(request):
     cart_items.delete()
     serializer = OrderSerializer(order, many=False)
     return Response(serializer.data)
-
+'''
 
 #payment
 stripe.api_key=settings.STRIPE_SECRET_KEY
@@ -129,7 +152,7 @@ class CreateCheckOutSession(APIView):
                              'unit_amount':int(orderitem_id.price) * 100,
                              'product_data':{
                                  'name':orderitem_id.name,
-                                 'images':[f"{API_URL}/{orderitem_id.product_image}"]
+                                 #'images':[f"{API_URL}/{orderitem_id.product_image}"]
 
                              }
                         },
