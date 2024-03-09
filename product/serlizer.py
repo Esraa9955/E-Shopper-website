@@ -1,14 +1,11 @@
 from rest_framework import serializers
 from product.models import *
 
-class ProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductImage
-        fields = ('image',)
+
 
 class ProductsSerlizer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True)
-    images = serializers.PrimaryKeyRelatedField(many=True, queryset=ProductImage.objects.all())
+   
+    
 
     reviews = serializers.SerializerMethodField(method_name='get_rates',read_only=True)
 
@@ -22,11 +19,7 @@ class ProductsSerlizer(serializers.ModelSerializer):
         serializer = RateSerializer(rates,many=True)
         return serializer.data
 
-    def create(self, validated_data):
-        images_data = validated_data.pop('images', []) 
-        product = Product.objects.create(**validated_data)
-        product.images.set(images_data)
-        return product
+  
 
     def create(self, validated_data):
          #** means 3aml el validate data k dict
@@ -42,26 +35,22 @@ class ProductsSerlizer(serializers.ModelSerializer):
         instance.update_date= validated_data.get('update_date')
         instance.brand = validated_data.get('brand')
         instance.stock= validated_data.get('stock')
+        instance.ratings=validated_data.get('ratings')
+        instance.new=validated_data.get('new')
+        instance.sale=validated_data.get('sale')
+        instance.newprice=validated_data.get('newprice')
+        instance.stock_S=validated_data.get('stock_S')
+        instance.stock_M=validated_data.get('stock_M')
+        instance.stock_L=validated_data.get('stock_L')
+        instance.stock_XL=validated_data.get('stock_XL')
+        instance.subImageOne=validated_data.get('subImageOne')
+        instance.subImageTwo=validated_data.get('subImageTwo')
+        instance.subImageThree=validated_data.get('subImageThree')
+        instance.subImageFour=validated_data.get('subImageFour')
         instance.save()
         return instance   
 
-    def create(self, validated_data):
-        images_data = validated_data.pop('images', []) 
-        product = Product.objects.create(**validated_data)
-        product.images.set(images_data)
-        return product
-
-
-    def create(self, validated_data):
-     images_data = validated_data.pop('images', []) 
-     product = Product.objects.create(**validated_data)
-
     
-     for image_data in images_data:
-        ProductImage.objects.create(product=product, **image_data)
-
-     return product
-
 class RateSerializer(serializers.ModelSerializer):
 
     class Meta:

@@ -23,10 +23,11 @@ class Product(models.Model):
     stock_M = models.IntegerField(default=0)
     stock_L = models.IntegerField(default=0)
     stock_XL = models.IntegerField(default=0)
-
-
-    thumbnail = models.ImageField(upload_to='product/images/', default='static/images/notfound.png')
-    images = models.ManyToManyField('ProductImage', related_name='products', blank=True)
+    subImageOne = models.ImageField(upload_to='product/images/' ,blank=True,null=True  )
+    subImageTwo = models.ImageField(upload_to='product/images/' ,blank=True,null=True)
+    subImageThree = models.ImageField(upload_to='product/images/',blank=True,null=True )
+    subImageFour = models.ImageField(upload_to='product/images/' ,blank=True,null=True)
+   
 
     def clean(self):
         super().clean()
@@ -38,13 +39,6 @@ class Product(models.Model):
             self.stock = sum([getattr(self, f"stock_{size}") for size in ['S', 'M', 'L', 'XL']])
         super().save(*args, **kwargs)
 
-class ProductImage(models.Model):
-    image = models.ImageField(upload_to='product/images/',default='static/images/notfound.png')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.image.name
-    
 
 class Rates(models.Model):
     product = models.ForeignKey(Product, null=True, on_delete=models.CASCADE,related_name='rates')
