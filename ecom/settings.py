@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'plan',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -90,7 +91,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"12345"
+        "PASSWORD":"1411"
 
     }
 }

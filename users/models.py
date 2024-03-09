@@ -3,16 +3,40 @@ from cart.models import Cart
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator, MaxLengthValidator,RegexValidator
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
+from datetime import timedelta
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import BaseUserManager
+
+class CustomToken(Token):
+    expires = models.DateTimeField(null=False, blank=False)
+
+    def save(self, *args, **kwargs):
+        # Set expiration time to 1 minute from now
+        self.expires = timezone.now() + timedelta(minutes=5)
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return self.expires and self.expires < timezone.now()
 
 
-# class Admin(models.Model):
-#   name=models.CharField(max_length=50)
-#   password=models.CharField(max_length=100)
-#   role=models.CharField(max_length=50)
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-# class DeliveryMan(models.Model):
-#   name=models.CharField(max_length=100)
-#   phone=models.CharField(max_length=50)
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        return self.create_user(email, password, **extra_fields)
+
 
 class User(AbstractUser):
     USER_TYPE_CHOICES = [
@@ -32,9 +56,9 @@ class User(AbstractUser):
     address = models.CharField(max_length=100, default='')
     shopname = models.CharField(max_length=100,blank=True,default='')
     birthdate=models.DateField(null=True)
-    is_verified = models.BooleanField(default=False)
+    is_active =  models.BooleanField(default=False, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')
     verification_token = models.CharField(max_length=100, blank=True, null=True)
-    
+    objects = CustomUserManager()
     REQUIRED_FIELDS = ['first_name', 'last_name','username']
 
 
