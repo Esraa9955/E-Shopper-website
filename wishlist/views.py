@@ -13,7 +13,8 @@ def addToList(request):
   user = request.data["user"]
   item = request.data["item"]
   if Wishlist.objects.filter(user=user, item=item).exists():
-        return Response({'msg': 'Item already exists in the wishlist'}, status=status.HTTP_400_BAD_REQUEST)
+        Wishlist.objects.filter(user=user, item=item).delete()
+        return Response({'msg': 'Item removed from wishlist'})
   else:
       wishlist_data = {'user': user, 'item': item}
       serializer = WishlistSerlizer(data=wishlist_data)
@@ -32,5 +33,15 @@ def deleteFromList(request,item_id):
   return Response({'msg': 'product not found'})
 
 @api_view(['GET'])
-def wishList(request):
-  pass
+def wishList(request, user_id):
+    user_list = Wishlist.objects.filter(user_id=user_id)
+    serializer = WishlistSerlizer(user_list, many=True)
+    
+    total_items_count = user_list.count()
+    
+    response_data = {
+        'wishlist_items': serializer.data,
+        'total_items_count': total_items_count,
+    }
+    
+    return Response(response_data, status=status.HTTP_200_OK)
