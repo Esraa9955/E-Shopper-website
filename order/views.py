@@ -23,7 +23,8 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
-
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import authentication_classes
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
 def get_orders(request):
@@ -52,7 +53,7 @@ def process_order(request,pk):
 
 
 @api_view(['DELETE'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def delete_order(request,pk):
     order =get_object_or_404(Order, id=pk) 
     order.delete()
@@ -60,9 +61,9 @@ def delete_order(request,pk):
     return Response({'details': "order is deleted"})
 
 
-
-
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def new_order(request):
     data = request.data
     order_items = data.get('order_Items', [])
