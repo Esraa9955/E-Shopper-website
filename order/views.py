@@ -26,14 +26,16 @@ from django.conf import settings
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import authentication_classes
 @api_view(['GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def get_orders(request):
     orders = Order.objects.all()
     serializer = OrderSerializer(orders,many=True)
     return Response({'orders':serializer.data})
 
 @api_view(['GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def get_order(request,pk):
     order =get_object_or_404(Order, id=pk)
 
@@ -42,7 +44,8 @@ def get_order(request,pk):
 
 
 @api_view(['PUT'])
-#@permission_classes([IsAuthenticated,IsAdminUser])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def process_order(request,pk):
     order =get_object_or_404(Order, id=pk)
     order.status = request.data['status']
@@ -54,6 +57,7 @@ def process_order(request,pk):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def delete_order(request,pk):
     order =get_object_or_404(Order, id=pk) 
     order.delete()
