@@ -31,7 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_password(self, value):
         if not re.search(r"[A-Z]", value):
             raise serializers.ValidationError("Password must contain at least one uppercase character.")
-        if not re.search(r"[!@#$%^&*]", value):
+        if not re.search(r"[!@#$%^&*_]", value):
             raise serializers.ValidationError("Password must contain at least one special character.")
         django_validate_password(value)
         return value
@@ -39,17 +39,24 @@ class UserSerializer(serializers.ModelSerializer):
         
 
     def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        cpassword = validated_data.pop('confirmPassword', None)
-        instance = self.Meta.model(**validated_data)
-        if password is not None:
-            instance.set_password(password)
-        if cpassword is not None:
-            instance.confirmPassword=password
+     password = validated_data.pop('password', None)
+     confirmPassword = validated_data.pop('confirmPassword', None)
 
+    # Ensure that password and confirmPassword are provided
+     if password is None or confirmPassword is None:
+        raise serializers.ValidationError("Both password and confirmPassword are required.")
 
-        instance.save()
-        return instance
+    # Ensure that password matches confirmPassword
+     if password != confirmPassword:
+        raise serializers.ValidationError("Password and confirmPassword do not match.")
+
+     instance = self.Meta.model(**validated_data)
+
+    # Set password using set_password method to hash it
+     instance.set_password(password)
+
+     return instance
+
     
 
     def update(self, instance, validated_data):

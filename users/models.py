@@ -13,7 +13,7 @@ class CustomToken(Token):
 
     def save(self, *args, **kwargs):
         # Set expiration time to 1 minute from now
-        self.expires = timezone.now() + timedelta(minutes=5)
+        self.expires = timezone.now() + timedelta(days=1)
         super().save(*args, **kwargs)
 
     def is_expired(self):
@@ -42,6 +42,7 @@ class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('customer', 'Customer'),
         ('vendor', 'Vendor'),
+        ('DeliveryMan', 'DeliveryMan'),
     ]
 
     first_name = models.CharField(max_length=10, validators=[MinLengthValidator(limit_value=3), MaxLengthValidator(limit_value=30)])
