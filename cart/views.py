@@ -6,27 +6,27 @@ from rest_framework.decorators import api_view
 from cart.models import *
 from .serlizer import CartSerlizer
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import authentication_classes
+from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.decorators import permission_classes, authentication_classes
 
 
-# @api_view(['POST'])
-# def addToCart(request):
-#   serializer = CartSerlizer(data=request.data)
-#   if serializer.is_valid():
-#       serializer.save()
-#       cart = serializer.instance
-#       total_item_price = cart.get_total_item_price()
-#       return Response({'msg': 'added','total_item_price': total_item_price})
-#   else:
-#       print(serializer.errors)
-#       return Response({'msg': 'wrong data', 'error': serializer.errors})
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def addToCart(request):
-    user = request.data["user"]
+    user = request.user.id
     item = request.data["item"]
     itemStock = Product.objects.get(id=item).stock
     quantity = request.data["quantity"]
-    # print(request.data)
+    data = {'user': user, 'item': item, "quantity": quantity}
+    print(user)
+    print(item)
+    print(Cart.objects.filter(user=user, item=item).exists())
+
     if Cart.objects.filter(user=user, item=item).exists():
         old_quantity = Cart.objects.filter(user=user, item=item).first().quantity
         existing_cart_item = Cart.objects.filter(user=user, item=item).first()
@@ -45,7 +45,8 @@ def addToCart(request):
             return Response({'msg': 'No item found in the cart to update'}, status=status.HTTP_404_NOT_FOUND)
     else:
         if itemStock >= quantity:
-            serializer = CartSerlizer(data=request.data)
+
+            serializer = CartSerlizer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 cart = serializer.instance
@@ -72,6 +73,8 @@ def addToCart(request):
     
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def deleteFromCart(request, cart_id):
     obj = Cart.objects.filter(id=cart_id).first()
     if obj is not None: 
@@ -80,6 +83,8 @@ def deleteFromCart(request, cart_id):
     return Response({'msg': 'product not found'})
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def reduceCartItemQuantity(request, cart_id):
     cart = get_object_or_404(Cart, id=cart_id)
 
@@ -95,6 +100,8 @@ def reduceCartItemQuantity(request, cart_id):
     return Response({'msg': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def increaseCartItemQuantity(request, cart_id):
     cart = get_object_or_404(Cart, id=cart_id)
 
@@ -114,7 +121,10 @@ def increaseCartItemQuantity(request, cart_id):
 
 
 @api_view(['GET'])
-def listCartItems(request, user_id):
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def listCartItems(request):
+    user_id = request.user.id
     user_carts = Cart.objects.filter(user_id=user_id)
     serializer = CartSerlizer(user_carts, many=True)
     total_items_price = 0

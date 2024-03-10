@@ -4,5 +4,5 @@ from .views import *
 urlpatterns = [
         path('add/', addToList),
         path('delete/<int:item_id>', deleteFromList),
-        path('list/<int:user_id>', wishList),
+        path('list/', wishList),
 ]

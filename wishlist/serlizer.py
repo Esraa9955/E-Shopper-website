@@ -8,7 +8,6 @@ class WishlistSerlizer(serializers.ModelSerializer):
     item_price = serializers.DecimalField(source='item.price', read_only=True, max_digits=10, decimal_places=2)
     
     def validate(self, data):
-        # if Cart.objects.filter(user=data['user'], item=data['item']).exists():
         if data['user'].usertype != 'customer':
             raise serializers.ValidationError({'errmsg':"user isn't a customer"})
         return data
