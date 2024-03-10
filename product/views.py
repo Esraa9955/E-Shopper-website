@@ -2,7 +2,7 @@
 
 from rest_framework import views
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from product.models import *
 from .serlizer import ProductsSerlizer
 from django.shortcuts import get_object_or_404
@@ -11,6 +11,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Avg
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import authentication_classes
+from rest_framework.permissions import IsAuthenticated 
 
 parser_classes = (MultiPartParser, FormParser)
 
@@ -34,6 +37,8 @@ def getproductbyid(request, id):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def addProduct(request):
     serializer = ProductsSerlizer(data=request.data)
     if serializer.is_valid():

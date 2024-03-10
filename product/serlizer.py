@@ -12,7 +12,8 @@ class ProductsSerlizer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = ['ratings']
+       
        
     def get_rates(self,obj):
         rates = obj.rates.all()
