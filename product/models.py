@@ -1,5 +1,5 @@
 from django.db import models
-from category.models import Category
+from category.models import *
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -8,6 +8,7 @@ class Product(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255,default="",blank=False)
     category= models.ForeignKey(Category,on_delete=models.CASCADE)
+    subcategory= models.ForeignKey(SubCategory,on_delete=models.CASCADE,default=0)
     image = models.ImageField(upload_to='product/images/', default='static/images/notfound.png')
     description = models.TextField(max_length=1000,default="",blank=False)
     price = models.DecimalField(max_digits=10, decimal_places=2,default=0)
@@ -19,6 +20,7 @@ class Product(models.Model):
     new = models.BooleanField(default=False)
     sale = models.BooleanField(default=False)
     newprice = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    sizeable=models.BooleanField(default=False)
     stock_S = models.IntegerField(default=0)
     stock_M = models.IntegerField(default=0)
     stock_L = models.IntegerField(default=0)
@@ -35,9 +37,17 @@ class Product(models.Model):
             raise ValidationError("New price must be less than the original price if the product is on sale.")
         
     def save(self, *args, **kwargs):
-        if self.category.name == "Clothes":
+        if self.sizeable:
             self.stock = sum([getattr(self, f"stock_{size}") for size in ['S', 'M', 'L', 'XL']])
+        else:
+            self.stock_S=0
+            self.stock_L=0
+            self.stock_M=0
+            self.stock_XL=0
+            
+
         super().save(*args, **kwargs)
+        
 
 
 class Rates(models.Model):
