@@ -36,8 +36,8 @@ def get_orders(request):
     return Response({'orders':serializer.data})
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
+#@permission_classes([IsAuthenticated])
+#@authentication_classes([TokenAuthentication])
 def get_order(request,pk):
     order =get_object_or_404(Order, id=pk)
 
@@ -140,18 +140,18 @@ stripe.api_key=settings.STRIPE_SECRET_KEY
 API_URL="http/locahost:8000"
 class CreateCheckOutSession(APIView):
     def post(self, request, *args, **kwargs):
-        orderitem_id=self.kwargs["pk"]
+        order_id=self.kwargs["pk"]
         try:
-            order_item=OrderItem.objects.get(id=orderitem_id)
+            order=Order.objects.get(id=order_id)
             checkout_session = stripe.checkout.Session.create(
                 line_items=[
                     {
                         # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                         'price_data': {
                             'currency':'usd',
-                             'unit_amount':int(orderitem_id.price) * 100,
+                             'unit_amount':int(order.total_price) * 100,
                              'product_data':{
-                                 'name':orderitem_id.name,
+                                 'name':order.first_name,
                                  #'images':[f"{API_URL}/{orderitem_id.product_image}"]
 
                              }
@@ -160,7 +160,7 @@ class CreateCheckOutSession(APIView):
                     },
                 ],
                 metadata={
-                    "product_id":orderitem_id.id
+                    "order_id":order.id
                 },
                 mode='payment',
                 success_url=settings.SITE_URL + '?success=true',
