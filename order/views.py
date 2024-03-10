@@ -69,8 +69,8 @@ def delete_order(request,pk):
 
 @api_view(['POST'])
 @transaction.atomic
-#@permission_classes([IsAuthenticated])
-#@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def new_order(request):
     data = request.data
     order_items = data.get('order_Items', [])
