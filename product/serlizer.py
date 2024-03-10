@@ -4,15 +4,12 @@ from product.models import *
 
 
 class ProductsSerlizer(serializers.ModelSerializer):
-   
-    
-
-    reviews = serializers.SerializerMethodField(method_name='get_rates',read_only=True)
+    rates = serializers.SerializerMethodField(method_name='get_rates',read_only=True)
 
 
     class Meta:
         model = Product
-        exclude = ['ratings']
+        fields='__all__'
        
        
     def get_rates(self,obj):
