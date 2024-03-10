@@ -54,6 +54,8 @@ def addProduct(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def updateProduct(request, id):
     updateobj = Product.objects.filter(id=id).first()
     if updateobj:
@@ -71,6 +73,8 @@ def updateProduct(request, id):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def deleteProduct(request, id):
     pro = Product.objects.filter(id=id).first()
     if pro is not None:  # Check if pro exists
