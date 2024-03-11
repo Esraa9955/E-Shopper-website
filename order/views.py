@@ -136,7 +136,7 @@ def new_order(request):
 
 #payment
 stripe.api_key=settings.STRIPE_SECRET_KEY
-
+success_url = settings.SITE_URL + 'thannk-you/'
 API_URL="http/locahost:8000"
 class CreateCheckOutSession(APIView):
     def post(self, request, *args, **kwargs):
@@ -163,7 +163,7 @@ class CreateCheckOutSession(APIView):
                     "order_id":order.id
                 },
                 mode='payment',
-                success_url=settings.SITE_URL + '?success=true',
+                success_url=success_url,  # Updated success_url
                 cancel_url=settings.SITE_URL + '?canceled=true',
             )
             return redirect(checkout_session.url)

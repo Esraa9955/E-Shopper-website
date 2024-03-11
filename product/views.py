@@ -81,35 +81,39 @@ def deleteProduct(request, id):
         pro.delete()
         return Response({'msg': 'deleted'})
     return Response({'msg': 'product not found'})
-
-
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def addRate(request, pk):
     product = get_object_or_404(Product, id=pk)
     data = request.data
- 
+
     if 'rating' not in data:
         return Response({"error": "Rating data is missing"}, status=status.HTTP_400_BAD_REQUEST)
 
-    rate = product.rates
+    new_rating = data['rating']
     
-    if data['rating'] <= 0 or data['rating'] > 5:
+    if new_rating <= 0 or new_rating > 5:
         return Response({"error": 'Please select between 1 to 5 only'}, status=status.HTTP_400_BAD_REQUEST) 
-    elif rate.exists():
-        new_rate = {'rating': data['rating']}
-        rate.update(**new_rate)
 
-        rating = product.rates.aggregate(avg_ratings=Avg('rating'))
-        product.ratings = rating['avg_ratings']
-        product.save()
+    # Check if the user has already rated this product
+    existing_rating = product.rates.filter(user=request.user).first()
 
-        return Response({'details': 'Product rate updated'})
+    if existing_rating:
+        # Update the existing rating
+        existing_rating.rating = new_rating
+        existing_rating.save()
     else:
+        # Create a new rating
         Rates.objects.create(
             product=product,
-            rating=data['rating'],
+            user=request.user,
+            rating=new_rating,
         )
-        rating = product.rates.aggregate(avg_ratings=Avg('rating'))
-        product.ratings = rating['avg_ratings']
-        product.save()
-        return Response({'details': 'Product rate created'})
+
+    # Recalculate the average rating for the product
+    avg_rating = product.rates.aggregate(avg_rating=Avg('rating'))['avg_rating']
+    product.ratings = avg_rating
+    product.save()
+
+    return Response({'details': 'Product rate updated'})
