@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/wishlist/', include('wishlist.urls')),
     path('API/Review/',include('review.urls')),
     path('api-auth/', include('rest_framework.urls')),
-    path('verify-email/', verify_email, name='verify_email')
+    path('verify-email/', verify_email, name='verify_email'),
+    path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
+    path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

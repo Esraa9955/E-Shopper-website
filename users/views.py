@@ -15,6 +15,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.contrib.auth.hashers import check_password
+from .models import PasswordResetOTP
+import random
+from django.utils import timezone
+from django.conf import settings
 
 # Create your views here.
 
@@ -186,3 +190,47 @@ def send_verification_email(user):
     subject = 'Email Verification'
     message = f'Click the following link to verify your email: http://localhost:8000/verify-email?token={user.verification_token}'
     send_mail(subject, message, 'taghreedmuhammed7@gmail.com', [user.email])
+
+def send_reset_password_otp(email, otp):
+    subject = 'Reset Your Password'
+    message = f'Your OTP for password reset is: {otp}'
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])  # Generate 6-digit OTP
+        expires_at = timezone.now() + timezone.timedelta(minutes=15)  # OTP expires in 15 minutes
+
+        # Save OTP in the database
+        PasswordResetOTP.objects.update_or_create(email=email, defaults={'otp': otp, 'expires_at': expires_at})
+
+        # Send OTP to the user's email
+        send_reset_password_otp(email, otp)
+
+        return Response({'message': 'OTP sent to your email. Check your inbox.'})
+
+class VerifyOTPView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        otp = request.data.get('otp')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        if new_password != confirm_password:
+            return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            otp_obj = PasswordResetOTP.objects.get(email=email, otp=otp)
+            if not otp_obj.is_expired():
+                # Reset user's password
+                user = User.objects.get(email=email)
+                user.set_password(new_password)
+                user.save()
+                otp_obj.delete()
+                return Response({'message': 'Password reset successfully.'})
+            else:
+                return Response({'error': 'OTP has expired.'}, status=status.HTTP_400_BAD_REQUEST)
+        except PasswordResetOTP.DoesNotExist:
+            return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)

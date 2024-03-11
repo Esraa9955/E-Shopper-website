@@ -72,4 +72,13 @@ class User(AbstractUser):
         if self.confirmPassword:
             self.password = make_password(self.confirmPassword)
         super().save(*args, **kwargs)
+
+class PasswordResetOTP(models.Model):
+    email = models.EmailField(unique=True)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_expired(self):
+        return self.expires_at < timezone.now()
    
