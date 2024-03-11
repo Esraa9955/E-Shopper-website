@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'product.apps.ProductConfig',
     'category.apps.CategoryConfig',
     'order.apps.OrderConfig',
+    'contactUs.apps.ContactusConfig',
     'payment.apps.PaymentConfig',
     'review.apps.ReviewConfig',
     'cart.apps.CartConfig',
@@ -91,7 +92,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"1234"
+        "PASSWORD":"12345"
 
     }
 }
