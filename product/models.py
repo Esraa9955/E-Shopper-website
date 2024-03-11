@@ -33,8 +33,11 @@ class Product(models.Model):
 
     def clean(self):
         super().clean()
-        if self.sale and self.newprice >= self.price:
-            raise ValidationError("New price must be less than the original price if the product is on sale.")
+        if self.sale :
+            if self.newprice >= self.price:
+                 raise ValidationError("New price must be less than the original price if the product is on sale.")
+        else:
+            self.newprice = self.price  
         
     def save(self, *args, **kwargs):
         if self.sizeable:
@@ -44,6 +47,7 @@ class Product(models.Model):
             self.stock_L=0
             self.stock_M=0
             self.stock_XL=0
+        
             
 
         super().save(*args, **kwargs)
