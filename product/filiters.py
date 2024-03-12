@@ -7,7 +7,9 @@ class ProductFilter(django_filters.FilterSet):
     keyword = django_filters.filters.CharFilter(field_name="name",lookup_expr="icontains")
     minPrice = django_filters.filters.NumberFilter(field_name="price" or 0,lookup_expr="gte")
     maxPrice = django_filters.filters.NumberFilter(field_name="price" or 100,lookup_expr="lte")
+    category = django_filters.CharFilter(field_name="category",  lookup_expr="exact")
+    subcategory = django_filters.CharFilter(field_name="subcategory",  lookup_expr="exact")
 
     class Meta:
         model = Product
-        fields = ('brand','keyword','minPrice','maxPrice')
+        fields = ( 'keyword', 'minPrice', 'maxPrice', 'category', 'subcategory')

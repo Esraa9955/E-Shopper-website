@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
+    vendor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True, blank=True)
     name = models.CharField(max_length=255,default="",blank=False)
     category= models.ForeignKey(Category,on_delete=models.CASCADE)
     subcategory= models.ForeignKey(SubCategory,on_delete=models.CASCADE,default=1)
