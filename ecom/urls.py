@@ -7,7 +7,7 @@ from users.views import *
 
 urlpatterns = [
 
-    path('', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('API/',include('product.urls')),
     path('API/',include('category.urls')),
     path('API/',include('order.urls')),
