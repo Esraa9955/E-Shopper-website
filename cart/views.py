@@ -20,27 +20,40 @@ from rest_framework.decorators import permission_classes, authentication_classes
 def addToCart(request):
     user = request.user.id
     item = request.data["item"]
-    itemStock = Product.objects.get(id=item).stock
     quantity = request.data["quantity"]
-    data = {'user': user, 'item': item, "quantity": quantity}
-    print(user)
-    print(item)
-    print(Cart.objects.filter(user=user, item=item).exists())
+    size = request.data["size"]
+    product = Product.objects.get(id=item)
 
-    if Cart.objects.filter(user=user, item=item).exists():
-        old_quantity = Cart.objects.filter(user=user, item=item).first().quantity
-        existing_cart_item = Cart.objects.filter(user=user, item=item).first()
+    if product.sizeable and size == "one_size":
+        itemStock = product.stock
+    if product.sizeable:
+        itemStock = getattr(product, f"stock_{size}")
+        # print(itemStock)
+    else:
+        itemStock = product.stock
+
+    data = {'user': user, 'item': item, "quantity": quantity , "size":size}
+
+    if Cart.objects.filter(user=user, item=item, size=size).exists():
+        old_quantity = Cart.objects.filter(user=user, item=item, size=size).first().quantity
+        existing_cart_item = Cart.objects.filter(user=user, item=item, size=size).first()
         if existing_cart_item:
             new_quantity = existing_cart_item.quantity + int(quantity)
-            if new_quantity <= existing_cart_item.item.stock:
+            if new_quantity <= itemStock:
                 existing_cart_item.quantity = new_quantity
                 existing_cart_item.save()
+                new_quantity = Cart.objects.filter(user=user, item=item, size=size).first().quantity
+                total_item_price = existing_cart_item.get_total_item_price()
+                return Response({'msg': 'Quantity updated in cart', 'total_item_price': total_item_price,'quantity': new_quantity - old_quantity}, status=status.HTTP_200_OK)
             else:
+                print(itemStock)
+                print("**************************")
                 existing_cart_item.quantity = itemStock
                 existing_cart_item.save()
-            new_quantity = Cart.objects.filter(user=user, item=item).first().quantity
-            total_item_price = existing_cart_item.get_total_item_price()
-            return Response({'msg': 'Quantity updated in cart', 'total_item_price': total_item_price,'quantity': new_quantity - old_quantity}, status=status.HTTP_200_OK)
+
+                # new_quantity = Cart.objects.filter(user=user, item=item, size=size).first().quantity
+                total_item_price = existing_cart_item.get_total_item_price()
+                return Response({'msg': 'Quantity cannot be increased further, exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'msg': 'No item found in the cart to update'}, status=status.HTTP_404_NOT_FOUND)
     else:
@@ -60,7 +73,8 @@ def addToCart(request):
             data = {
                 "user": user,
                 "item": item,
-                "quantity": itemStock
+                "quantity": itemStock,
+                "size": size
             }
             serializer = CartSerlizer(data=data)
             if serializer.is_valid():
