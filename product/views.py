@@ -42,14 +42,15 @@ def getproductbyid(request, id):
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def addProduct(request):
-    serializer = ProductsSerlizer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({'msg': 'added'})
+    if request.user.usertype == 'vendor':  # Check if the authenticated user is a vendor
+        serializer = ProductsSerlizer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg': 'added'})
+        else:
+            return Response({'msg': 'wrong data', 'error': serializer.errors})
     else:
-        print(serializer.errors)
-        return Response({'msg': 'wrong data', 'error': serializer.errors})
-
+        return Response({'msg': 'Only vendors can add products.'}, status=status.HTTP_403_FORBIDDEN)
 
 
 
