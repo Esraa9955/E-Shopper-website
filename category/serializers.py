@@ -17,3 +17,13 @@ class CategorySerializer(serializers.ModelSerializer):
         subcategory = obj.chiled.all()
         serializer = SubCategorySerializer(subcategory,many=True)
         return serializer.data 
+  def create(self, validated_data):
+    category=Category()
+    category.itemCount=validated_data['itemCount']
+    category.name=validated_data['name']
+    category.description=validated_data['description']
+    
+    category = Category.objects.create(**validated_data)
+    category.save()
+    return category  
+
