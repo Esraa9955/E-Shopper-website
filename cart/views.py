@@ -90,8 +90,8 @@ def addToCart(request):
                 return Response({'msg': 'added', 'total_item_price': total_item_price,'quantity': quantity}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        elif itemStock < quantity:
-            return Response({'msg': 'out of stock'}, status=status.HTTP_400_BAD_REQUEST)
+        # elif itemStock < quantity:
+        #     return Response({'msg': 'out of stock'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             # return Response({'msg': 'Quantity exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
             
