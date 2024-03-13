@@ -7,6 +7,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from cart.models import Cart
 from users.views import *
 from product.models import Product   
+from cart.models import Cart   
 from .serializers import OrderSerializer
 from .models import Order,OrderItem
 # checkout 
@@ -31,9 +32,9 @@ from django.db import transaction
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def get_orders(request):
-    orders = Order.objects.all()
-    serializer = OrderSerializer(orders,many=True)
-    return Response({'orders':serializer.data})
+    orders = Order.objects.order_by('-id')
+    serializer = OrderSerializer(orders, many=True)
+    return Response({'orders': serializer.data})
 
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
@@ -82,7 +83,8 @@ def new_order(request):
     if zip_code is None:
         return Response({'error': 'zip_code is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    total_price = sum(float(item['price']) * int(item['quantity']) for item in order_items)
+    total_price = sum(float(item.get('price', 0)) * int(item.get('quantity', 0)) for item in order_items)
+    
     order = Order.objects.create(
         first_name=data['first_name'],
         last_name=data['last_name'],
@@ -105,16 +107,29 @@ def new_order(request):
                     order=order,
                     name=product.name,
                     quantity=i['quantity'],
-                    price=i['price']
+                    price=i.get('price', 0),  # Use .get() to handle missing 'price' key
                 )
-                product.stock -= item.quantity
+                size=i['size']  # Use .get() to handle missing 'price' key
+                if size == "S":
+                    product.stock_S -= item.quantity
+                elif size == "M":
+                    product.stock_M -= item.quantity
+                elif size == "L":
+                    product.stock_L -= item.quantity
+                elif size == "XL":
+                    product.stock_XL -= item.quantity
+                elif size == "one_size":
+                    product.stock -= item.quantity
+                # product.stock -= item.quantity
                 product.save()
         except Product.DoesNotExist:
             return Response({'error': f'Product with ID {i["product"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
     cart_items = Cart.objects.filter()
     cart_items.delete()
     serializer = OrderSerializer(order, many=False)
     return Response(serializer.data)
+
 
 '''    for i in order_items:
         product = Product.objects.get(id=i['product'])

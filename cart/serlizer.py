@@ -5,15 +5,21 @@ from cart.models import *
 class CartSerlizer(serializers.ModelSerializer):
     item_image = serializers.ImageField(source='item.image', read_only=True)
     item_name = serializers.CharField(source='item.name', read_only=True)
-    item_price = serializers.DecimalField(source='item.price', read_only=True, max_digits=10, decimal_places=2)
+    item_price = serializers.SerializerMethodField()
     subtotal_price = serializers.SerializerMethodField()
+    stock_S = serializers.IntegerField(source='item.stock_S', read_only=True)
+    stock_M = serializers.IntegerField(source='item.stock_M', read_only=True)
+    stock_L = serializers.IntegerField(source='item.stock_L', read_only=True)
+    stock_XL = serializers.IntegerField(source='item.stock_XL', read_only=True)
     def validate(self, data):
         if data['user'].usertype != 'customer':
             raise serializers.ValidationError({'errmsg':"user isn't a customer"})
         return data
-    
+    def get_item_price(self, obj):
+        return obj.item.newprice if obj.item.sale else obj.item.price
     def get_subtotal_price(self, obj):
-        return obj.quantity * obj.item.price
+        price = obj.item.newprice if obj.item.sale else obj.item.price
+        return obj.quantity * price
     class Meta:
         model = Cart
         fields = '__all__'

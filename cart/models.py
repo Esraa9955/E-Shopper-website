@@ -19,5 +19,7 @@ class Cart(models.Model):
         return f"{self.id} of {self.item.name}"
 
   def get_total_item_price(self):
-      return self.quantity * self.item.price
-  
+        if self.item.sale: 
+            return self.quantity * self.item.newprice
+        else:
+            return self.quantity * self.item.price

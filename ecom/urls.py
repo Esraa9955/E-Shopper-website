@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/', include('plan.urls')),
     path('api/cart/', include('cart.urls')),
     path('api/wishlist/', include('wishlist.urls')),
+    path('api/delivaryman/', include('delivaryman.urls')),
     path('API/Review/',include('review.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('verify-email/', verify_email, name='verify_email'),

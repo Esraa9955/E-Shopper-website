@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'payment.apps.PaymentConfig',
     'review.apps.ReviewConfig',
     'cart.apps.CartConfig',
+    'delivaryman.apps.DelivarymanConfig',
     'wishlist.apps.WishlistConfig',
     'rest_framework' ,
     'rest_framework_simplejwt',
@@ -92,7 +93,7 @@ DATABASES = {
         "HOST": "localhost",
         "PORT":"5432",
         "USER":"postgres",
-        "PASSWORD":"12345"
+        "PASSWORD":"123"
 
     }
 }

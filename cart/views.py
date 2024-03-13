@@ -24,6 +24,8 @@ def addToCart(request):
     size = request.data["size"]
     product = Product.objects.get(id=item)
 
+    # price = product.newprice if product.sale else product.price
+
     if product.sizeable and size == "one_size":
         itemStock = product.stock
     if product.sizeable:
@@ -46,16 +48,37 @@ def addToCart(request):
                 total_item_price = existing_cart_item.get_total_item_price()
                 return Response({'msg': 'Quantity updated in cart', 'total_item_price': total_item_price,'quantity': new_quantity - old_quantity}, status=status.HTTP_200_OK)
             else:
-                print(itemStock)
-                print("**************************")
                 existing_cart_item.quantity = itemStock
                 existing_cart_item.save()
-
-                # new_quantity = Cart.objects.filter(user=user, item=item, size=size).first().quantity
                 total_item_price = existing_cart_item.get_total_item_price()
                 return Response({'msg': 'Quantity cannot be increased further, exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'msg': 'No item found in the cart to update'}, status=status.HTTP_404_NOT_FOUND)
+    elif Cart.objects.filter(user=user, item=item).exists():
+        if itemStock >= quantity:
+            serializer = CartSerlizer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                cart = serializer.instance
+                total_item_price = cart.get_total_item_price()
+                return Response({'msg': 'added', 'total_item_price': total_item_price,'quantity': quantity}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            data = {
+                "user": user,
+                "item": item,
+                "quantity": itemStock,
+                "size": size
+            }
+            serializer = CartSerlizer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                cart = serializer.instance
+                total_item_price = cart.get_total_item_price()
+                return Response({'msg': 'added', 'total_item_price': total_item_price, 'quantity': itemStock }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     else:
         if itemStock >= quantity:
 
@@ -67,6 +90,8 @@ def addToCart(request):
                 return Response({'msg': 'added', 'total_item_price': total_item_price,'quantity': quantity}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'msg': 'Invalid data', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        elif itemStock < quantity:
+            return Response({'msg': 'out of stock'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             # return Response({'msg': 'Quantity exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
             
