@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from rest_framework.generics import RetrieveAPIView
 from rest_framework import permissions
 from .serlializers import PlanSerializer
-from .models import  Plan
+from .models import  *
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
@@ -65,3 +65,41 @@ class CreateCheckOutSession(APIView):
             return Response({'msg':'something went wrong while creating stripe session','error':str(e)}, status=500)
         
 
+@csrf_exempt
+def stripe_webhook_view(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+        payload, sig_header, settings.STRIPE_SECRET_WEBHOOK
+        )
+    except ValueError as e:
+        # Invalid payload
+        return Response(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return Response(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+
+        print(session)
+        customer_email=session['customer_details']['email']
+        plan_id=session['metadata']['plan_id']
+        plan=Plan.objects.get(id=plan_id)
+        #sending confimation mail
+        send_mail(
+            subject="payment sucessful",
+            message=f"thank for your purchase your order is ready.",
+            recipient_list=[customer_email],
+            from_email="elshriefhanaa@gmail.com"
+        )
+
+        #creating payment history
+        # user=User.objects.get(email=customer_email) or None
+
+        PaymentHistory.objects.create(plan=plan, payment_status=True)
+    # Passed signature verification
+    return HttpResponse(status=200)
