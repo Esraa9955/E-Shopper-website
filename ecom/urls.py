@@ -5,6 +5,7 @@ from django.conf import settings
 from users.views import *
 
 
+
 urlpatterns = [
 
     path('admin/', admin.site.urls),
@@ -12,6 +13,7 @@ urlpatterns = [
     path('API/',include('category.urls')),
     path('API/',include('order.urls')),
     path('API/',include('contactUs.urls')),
+    path('API/', include('banner.urls')),
     path('api/', include('users.urls')),
     path('api/', include('plan.urls')),
     path('api/cart/', include('cart.urls')),

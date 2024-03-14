@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'delivaryman.apps.DelivarymanConfig',
     'wishlist.apps.WishlistConfig',
+    'banner.apps.BannerConfig',
     'rest_framework' ,
     'rest_framework_simplejwt',
     'django_filters',
