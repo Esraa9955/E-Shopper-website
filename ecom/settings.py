@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'delivaryman.apps.DelivarymanConfig',
     'wishlist.apps.WishlistConfig',
+    'banner.apps.BannerConfig',
     'rest_framework' ,
     'rest_framework_simplejwt',
     'django_filters',
@@ -170,7 +171,10 @@ TAGGIT_CASE_INSENSITIVE = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5qunHFjBLc85NNFNlDoJR9Z5lGJMoFL40bGxh00oVXVBwJQ"
-STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
-STRIPE_SECRET_WEBHOOK="whsec_255ebc7d30e297a3004ea0df2d754d4298597ba3149da1fad360a26eeedf02db"
+# STRIPE_PUBLIC_KEY="pk_test_51Ori5DKxvLWmSwKTHhWbP8C563cxgB3hNcXmyR3ekcYPdyU72FJ5qunHFjBLc85NNFNlDoJR9Z5lGJMoFL40bGxh00oVXVBwJQ"
+# STRIPE_SECRET_KEY="sk_test_51Ori5DKxvLWmSwKThggOsvo4Ayh3HrGANxSR8nIiHz7UAjH8xUsnJXZ0bYDKFU8cpYUTOuIQ3z1GCCmBCxZNh3ai000g8Tq5WG"
+# STRIPE_SECRET_WEBHOOK="whsec_255ebc7d30e297a3004ea0df2d754d4298597ba3149da1fad360a26eeedf02db"
+STRIPE_PUBLIC_KEY="pk_test_51OsRNnAnclBQmAKpRGVz2IzNgXn8IlDyyx1M03TYO8dOKPvAOUNrr2fWHVREhJ5c8YjalrjWJTvsea6rOdhaWydf00BY8e7dt0"
+STRIPE_SECRET_KEY="sk_test_51OsRNnAnclBQmAKpW7b7tDwm8E5oQyYZBz1EVNpBSlsXhlaa65OHjmBIjAga9E3EuwNe1phDdk2XbzoFQOP0xs6y00ivabzHuy"
+STRIPE_SECRET_WEBHOOK="whsec_4aba0fecb407d9e9b55250fbb420f38d35944687e651e1e11b57057c2739a6c3"
 SITE_URL='http://localhost:3000/'
