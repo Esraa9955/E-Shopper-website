@@ -60,7 +60,7 @@ class CreateCheckOutSession(APIView):
                     "plan_id":plan.id
                 },
                 mode='payment',
-                success_url=settings.SITE_URL + '?success=true',
+                success_url=settings.SITE_URL + 'vendorprofile',
                 cancel_url=settings.SITE_URL + '?canceled=true',
             )
             return redirect(checkout_session.url)
