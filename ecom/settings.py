@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'category.apps.CategoryConfig',
     'order.apps.OrderConfig',
     'contactUs.apps.ContactusConfig',
-    'payment.apps.PaymentConfig',
     'review.apps.ReviewConfig',
     'cart.apps.CartConfig',
     'delivaryman.apps.DelivarymanConfig',

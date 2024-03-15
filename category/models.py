@@ -4,7 +4,7 @@ from django.db import models
 #categories of products
 class Category(models.Model):
   name=models.CharField(max_length=255)
-  itemCount=models.IntegerField(blank=True, null=True)
+  #itemCount=models.IntegerField(blank=True, null=True)
   description=models.TextField(max_length=255, blank=True, null=True)
   image = models.ImageField(upload_to='category/images', default='static/images/notfound.png')
   # image = models.ImageField(upload_to='category/images/',null=True)
