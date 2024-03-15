@@ -10,6 +10,7 @@ from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import permission_classes, authentication_classes
 from order.serializers import OrderSerializer
+from django.core.mail import send_mail
 
 
 @api_view(['PUT'])
@@ -21,6 +22,11 @@ def updateOrderStatus(request, order_id):
     if order.status == Order.PENDING_STATE:
         order.status = Order.SHIPPED_STATE
         order.save()
+        subject = 'Ashion'
+        message = 'Your order has been shipped'
+        from_email = 'admin@ashion.com'
+        recipient_list = [order.email]
+        send_mail(subject, message, from_email, recipient_list)
     elif order.status == Order.SHIPPED_STATE:
         order.status = Order.DELIVERED_STATE
         order.save()
