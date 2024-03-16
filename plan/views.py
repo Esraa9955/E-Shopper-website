@@ -104,8 +104,7 @@ def stripe_webhook_view(request):
                 payment_status=True,
                 date=timezone.now()
             )
-        else:
-            print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+        
 
             # Sending confirmation mail
             send_mail(
