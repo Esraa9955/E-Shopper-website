@@ -28,6 +28,13 @@ def allProducts(request):
     return paginator.get_paginated_response({'products': productsjson})
 
 @api_view(['GET'])
+def allProductwithoutpagination(request):
+    filter_products = ProductFilter(request.GET, queryset=Product.objects.all().order_by('id'))
+    products = filter_products.qs
+    products_json = ProductsSerlizer(products, many=True).data
+    return Response({'products':products_json})
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def getproductbyid(request, id):

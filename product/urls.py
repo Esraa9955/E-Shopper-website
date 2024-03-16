@@ -5,6 +5,7 @@ from .views import *
 
 urlpatterns = [
    path('allproducts/',allProducts,name='allProducts'), 
+   path('allpro/',allProductwithoutpagination,name='allPro'),
    path('getProduct/<int:id>/', getproductbyid, name='getproductbyid'),
    path('addProduct/',addProduct,name='addProduct' ),
    path('updateProduct/<int:id>/',updateProduct,name='updateProduct' ),
