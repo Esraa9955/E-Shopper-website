@@ -234,3 +234,37 @@ class VerifyOTPView(APIView):
                 return Response({'error': 'OTP has expired.'}, status=status.HTTP_400_BAD_REQUEST)
         except PasswordResetOTP.DoesNotExist:
             return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ForgetPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        user = User.objects.filter(email=email).first()
+        if user:
+            otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])  # Generate 6-digit OTP
+            expires_at = timezone.now() + timezone.timedelta(minutes=15)  # OTP expires in 15 minutes
+
+            # Save OTP in the database
+            PasswordResetOTP.objects.update_or_create(email=email, defaults={'otp': otp, 'expires_at': expires_at})
+
+            # Send OTP to the user's email
+            send_reset_password_otp(email, otp)
+
+            return Response({'message': 'OTP sent to your email. Check your inbox.'})
+        else:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class ChangePasswordView(APIView):
+    def post(self, request):
+        new_password = request.data.get('new_password')
+        email = request.data.get('email')
+        
+        user = User.objects.filter(email=email).first()
+        
+        if user:
+            # Set the new password and save the user
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Password changed successfully.'})
+        else:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
