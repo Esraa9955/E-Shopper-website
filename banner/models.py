@@ -16,7 +16,7 @@ class Discount(models.Model):
     title = models.CharField(max_length=100)
     image = models.ImageField(upload_to='discounts/images', default='static/images/notfound.png')
     description = models.TextField(max_length=255, blank=True, null=True)
-    sale_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    sale_percentage = models.IntegerField()
     end_date = models.DateTimeField()
 
     def __str__(self):
