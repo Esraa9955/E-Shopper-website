@@ -8,8 +8,8 @@ from cart.models import Cart
 from users.views import *
 from product.models import Product   
 from cart.models import Cart   
-from .serializers import OrderSerializer
-from .models import Order,OrderItem
+from .serializers import *
+from .models import *
 # checkout 
 from rest_framework import response
 from django.http import HttpResponse
@@ -35,6 +35,13 @@ def get_orders(request):
     orders = Order.objects.order_by('-id')
     serializer = OrderSerializer(orders, many=True)
     return Response({'orders': serializer.data})
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_ordersTmp(request):
+    orders = OrderTmp.objects.all() # Fetch all OrderTmp objects
+    serializer = OrderTmpSerializer(orders, many=True)  # Serialize queryset
+    return Response({'orders': serializer.data})
 
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
@@ -44,6 +51,20 @@ def get_order(request,pk):
 
     serializer = OrderSerializer(order,many=False)
     return Response({'order':serializer.data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_orderTmp(request):
+    email = request.user.email
+    
+    try:
+        order = OrderTmp.objects.get(email=email)
+    except OrderTmp.DoesNotExist:
+        raise ValidationError({'error': 'Order not found for this email'})
+
+    serializer = OrderTmpSerializer(order, many=False)
+    return Response({'order': serializer.data})
 
 
 @api_view(['PUT'])
@@ -67,6 +88,78 @@ def delete_order(request,pk):
       
     return Response({'details': "order is deleted"})
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def delete_orderTmp(request,pk):
+    order =get_object_or_404(OrderTmp, id=pk) 
+    order.delete()
+      
+    return Response({'details': "order is deleted"})
+
+
+@api_view(['POST'])
+@transaction.atomic
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def new_orderTmp(request):
+    data = request.data
+    order_items = data.get('order_Items', [])
+
+    if not order_items or len(order_items) == 0:
+        return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
+
+    zip_code = data.get('zip_code')
+    if zip_code is None:
+        return Response({'error': 'zip_code is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    total_price = sum(float(item.get('price', 0)) * int(item.get('quantity', 0)) for item in order_items)
+    
+    order = OrderTmp.objects.create(
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        email=data['email'],
+        city=data['city'],
+        zip_code=zip_code,
+        street=data['street'],
+        phone_number=data['phone_number'],
+        country=data['country'],
+        total_price=total_price,
+        state=data['state'],
+    )
+
+    for i in order_items:
+        try:
+            with transaction.atomic():
+                product = Product.objects.get(id=i['product'])
+                item = OrderItemTmp.objects.create(
+                    product=product,
+                    order=order,
+                    name=product.name,
+                    quantity=i['quantity'],
+                    price=i.get('price', 0),  # Use .get() to handle missing 'price' key
+                    size=i['size'],  # Use .get() to handle missing 'price' key
+                )
+                # size=i['size']  # Use .get() to handle missing 'price' key
+                # if size == "S":
+                #     product.stock_S -= item.quantity
+                # elif size == "M":
+                #     product.stock_M -= item.quantity
+                # elif size == "L":
+                #     product.stock_L -= item.quantity
+                # elif size == "XL":
+                #     product.stock_XL -= item.quantity
+                # elif size == "one_size":
+                #     product.stock -= item.quantity
+                # product.stock -= item.quantity
+                product.save()
+        except Product.DoesNotExist:
+            return Response({'error': f'Product with ID {i["product"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+    cart_items = Cart.objects.filter()
+    # cart_items.delete()
+    serializer = OrderTmpSerializer(order, many=False)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @transaction.atomic
@@ -155,18 +248,19 @@ success_url = settings.SITE_URL + 'thannk-you/'
 API_URL="http/locahost:8000"
 class CreateCheckOutSession(APIView):
     def post(self, request, *args, **kwargs):
-        order_id=self.kwargs["pk"]
+        # order_id=self.kwargs["pk"]
+        total=self.kwargs["pk"]
         try:
-            order=Order.objects.get(id=order_id)
+            # order=Order.objects.get(id=order_id)
             checkout_session = stripe.checkout.Session.create(
                 line_items=[
                     {
                         # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                         'price_data': {
                             'currency':'usd',
-                             'unit_amount':int(order.total_price) * 100,
+                             'unit_amount':int(total) * 100,
                              'product_data':{
-                                 'name':order.first_name,
+                                 'name':"hello",
                                  #'images':[f"{API_URL}/{orderitem_id.product_image}"]
 
                              }
@@ -174,9 +268,9 @@ class CreateCheckOutSession(APIView):
                         'quantity': 1,
                     },
                 ],
-                metadata={
-                    "order_id":order.id
-                },
+                # metadata={
+                #     "order_id":order.id
+                # },
                 mode='payment',
                 success_url=success_url,  # Updated success_url
                 cancel_url=settings.SITE_URL + '?canceled=true',
