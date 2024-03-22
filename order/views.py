@@ -251,16 +251,16 @@ class CreateCheckOutSession(APIView):
         # order_id=self.kwargs["pk"]
         total=self.kwargs["pk"]
         try:
-            # order=Order.objects.get(id=order_id)
+            order=OrderTmp.objects.get(id=total)
             checkout_session = stripe.checkout.Session.create(
                 line_items=[
                     {
                         # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                         'price_data': {
                             'currency':'usd',
-                             'unit_amount':int(total) * 100,
+                             'unit_amount':int(order.total_price) * 100,
                              'product_data':{
-                                 'name':"hello",
+                                 'name':"total",
                                  #'images':[f"{API_URL}/{orderitem_id.product_image}"]
 
                              }
