@@ -134,6 +134,22 @@ class LastVendorAPIView(generics.RetrieveAPIView):
         last_payment = PaymentHistory.objects.filter(vendor=vendor_id).order_by('-id').first()
         return last_payment
         
+# class UpdateStockAPIView(APIView):
+
+#     def post(self, request, *args, **kwargs):
+#         vendor_id = request.data.get('vendor')
+#         new_stock = request.data.get('stock')
+
+#         if vendor_id is None or new_stock is None:
+#             return Response({"error": "Vendor ID and new stock are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             payment_history = PaymentHistory.objects.filter(vendor=vendor_id).latest('date')
+#             payment_history.stock = new_stock
+#             payment_history.save()
+#             return Response({"success": "Stock updated successfully"}, status=status.HTTP_200_OK)
+#         except PaymentHistory.DoesNotExist:
+#             return Response({"error": "No payment history found for this vendor"}, status=status.HTTP_404_NOT_FOUND)
 
 class UpdateStockAPIView(APIView):
 
@@ -145,9 +161,14 @@ class UpdateStockAPIView(APIView):
             return Response({"error": "Vendor ID and new stock are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            payment_history = PaymentHistory.objects.filter(vendor=vendor_id).latest('date')
-            payment_history.stock = new_stock
-            payment_history.save()
-            return Response({"success": "Stock updated successfully"}, status=status.HTTP_200_OK)
-        except PaymentHistory.DoesNotExist:
-            return Response({"error": "No payment history found for this vendor"}, status=status.HTTP_404_NOT_FOUND)
+            # Retrieve the last payment history for the given vendor
+            last_payment = PaymentHistory.objects.filter(vendor=vendor_id).order_by('-id').first()
+            if last_payment:
+                # Update the stock of the last payment
+                last_payment.stock = new_stock
+                last_payment.save()
+                return Response({"success": "Stock updated successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "No payment history found for this vendor"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
