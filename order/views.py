@@ -38,6 +38,15 @@ def get_orders(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
+def get_user_orders(request):
+    user = request.user
+    orders = Order.objects.filter(email=user.email)  # Assuming email is used to identify the user
+    serializer = OrderSerializer(orders, many=True)
+    return Response({'orders': serializer.data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
 def get_ordersTmp(request):
     orders = OrderTmp.objects.all() # Fetch all OrderTmp objects
     serializer = OrderTmpSerializer(orders, many=True)  # Serialize queryset
