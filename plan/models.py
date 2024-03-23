@@ -15,6 +15,7 @@ class PaymentHistory(models.Model):
     plan=models.ForeignKey(Plan, on_delete=models.SET_NULL, blank=True, null=True)
     date=models.DateTimeField(auto_now_add=True)
     payment_status=models.BooleanField()
+    stock=models.IntegerField(default=0)
 
 
     def __str__(self):

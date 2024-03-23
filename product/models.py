@@ -17,6 +17,7 @@ class Product(models.Model):
     update_date = models.DateTimeField(auto_now=True,null=True, blank=True)
     brand = models.CharField(max_length=225,default="",blank=False)
     stock=models.IntegerField(default=0)
+    checkstock=models.IntegerField(default=0)
     ratings = models.DecimalField(max_digits=3,decimal_places=2,default=0)
     new = models.BooleanField(default=False)
     sale = models.BooleanField(default=False)
@@ -43,11 +44,13 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if self.sizeable:
             self.stock = sum([getattr(self, f"stock_{size}") for size in ['S', 'M', 'L', 'XL']])
+            self.checkstock = sum([getattr(self, f"stock_{size}") for size in ['S', 'M', 'L', 'XL']])
         else:
             self.stock_S=0
             self.stock_L=0
             self.stock_M=0
             self.stock_XL=0
+            self.checkstock=self.stock
         
             
 
