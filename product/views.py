@@ -34,8 +34,7 @@ def allProductwithoutpagination(request):
     return Response({'products':products_json})
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-@authentication_classes([TokenAuthentication])
+
 def getproductbyid(request, id):
     product=get_object_or_404(Product,id=id)
     productjson = ProductsSerlizer(product,many=False).data
