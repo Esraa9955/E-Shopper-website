@@ -252,6 +252,26 @@ def new_order(request):
     return Response(serializer.data)
 '''
 
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def cancelOrder(request, pk):
+    order = get_object_or_404(Order, id=pk)
+
+    # Check if order status is eligible for cancellation
+    if order.status not in [Order.SHIPPED_STATE, Order.DELIVERED_STATE]:
+        order.status = Order.CANSCELLED_STATE  # Change status to canceled
+        order.save()
+        return Response({'msg': 'Order canceled successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'msg': 'Order cannot be canceled, status is already shipped or delivered'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
 #payment
 stripe.api_key=settings.STRIPE_SECRET_KEY
 success_url = settings.SITE_URL + 'thannk-you/'

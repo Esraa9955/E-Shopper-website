@@ -15,5 +15,6 @@ urlpatterns = [
     path('orders/<str:pk>/process/',views.process_order, name='process_order'),
     path('orders/<str:pk>/delete/',views.delete_order, name='delete_order'),
     path('orders/<str:pk>/deleteTmp/',views.delete_orderTmp, name='delete_orderTmp'),
-    path('create-checkout-session/<pk>/',CreateCheckOutSession.as_view(), name='checkout_session')
+    path('create-checkout-session/<pk>/',CreateCheckOutSession.as_view(), name='checkout_session'),
+    path('orders/<str:pk>/cancel/',views.cancelOrder, name='cancel_order'),  # Add cancel order URL
 ]
