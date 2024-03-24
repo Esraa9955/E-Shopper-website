@@ -78,3 +78,8 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Mobile number must begin with +20.")
         return value
     
+class StatisticsSerializer(serializers.Serializer):
+    orders_count = serializers.IntegerField()
+    products_count = serializers.IntegerField()
+    users_count = serializers.IntegerField()
+    

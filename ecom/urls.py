@@ -26,5 +26,6 @@ urlpatterns = [
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
     path('forget-password/', ForgetPasswordView.as_view(), name='forget_password'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('api/admin/statistics/', get_statistics, name='admin-statistics'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

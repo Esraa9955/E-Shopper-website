@@ -1,11 +1,10 @@
-from django.shortcuts import render
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
 from rest_framework import status
-import datetime
 from rest_framework import status
 from django.core.mail import send_mail
 from django.http import HttpResponse
@@ -19,6 +18,9 @@ from .models import PasswordResetOTP
 import random
 from django.utils import timezone
 from django.conf import settings
+from rest_framework.decorators import api_view
+from order.models import Order
+from product.models import Product
 
 # Create your views here.
 
@@ -268,3 +270,13 @@ class ChangePasswordView(APIView):
         else:
             return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+def get_statistics(request):
+    orders_count = Order.objects.count()
+    products_count = Product.objects.count()
+    users_count = User.objects.count()
+    return Response({
+        'orders_count': orders_count,
+        'products_count': products_count,
+        'users_count': users_count,
+    })
