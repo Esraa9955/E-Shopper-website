@@ -107,7 +107,14 @@ class OrderItemTmp(models.Model):
     name = models.CharField(max_length=200, default="", blank=False)
     price = models.DecimalField(max_digits=7, decimal_places=2, blank=False)
     quantity = models.IntegerField()
-    size = models.CharField(max_length=200, default="", blank=False)
+    SIZE_CHOICES = [
+        ('one_size', 'one_size'),
+        ('S', 'S'),
+        ('M', 'M'),
+        ('L', 'L'),
+        ('XL', 'XL'),
+    ]
+    size = models.CharField(max_length=10, choices=SIZE_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return self.product.name
@@ -123,6 +130,7 @@ class OrderItem(models.Model):
     name = models.CharField(max_length=200, default="", blank=False)
     price = models.DecimalField(max_digits=7, decimal_places=2, blank=False)
     quantity = models.IntegerField()
+    size = models.CharField(max_length=200, default="", blank=False)
 
     def __str__(self):
         return self.product.name

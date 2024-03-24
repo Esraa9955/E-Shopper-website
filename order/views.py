@@ -210,6 +210,7 @@ def new_order(request):
                     name=product.name,
                     quantity=i['quantity'],
                     price=i.get('price', 0),  # Use .get() to handle missing 'price' key
+                    size = i["size"]
                 )
                 size=i['size']  # Use .get() to handle missing 'price' key
                 if size == "S":
