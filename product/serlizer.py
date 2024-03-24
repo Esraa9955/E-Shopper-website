@@ -24,6 +24,8 @@ class ProductsSerlizer(serializers.ModelSerializer):
         return Product.objects.create(**validated_data)
     
 
+
+
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name')
         instance.image= validated_data.get('image')
@@ -36,6 +38,7 @@ class ProductsSerlizer(serializers.ModelSerializer):
         instance.ratings=validated_data.get('ratings')
         instance.new=validated_data.get('new')
         instance.sale=validated_data.get('sale')
+        instance.sizeable=validated_data.get('sizeable')
         instance.newprice=validated_data.get('newprice')
         instance.stock_S=validated_data.get('stock_S')
         instance.stock_M=validated_data.get('stock_M')
