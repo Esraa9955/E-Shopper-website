@@ -3,6 +3,7 @@ from django.urls import path,include
 from django.conf.urls.static import static
 from django.conf import settings
 from users.views import *
+from order.views import *
 
 
 
@@ -27,5 +28,7 @@ urlpatterns = [
     path('forget-password/', ForgetPasswordView.as_view(), name='forget_password'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('api/admin/statistics/', get_statistics, name='admin-statistics'),
+    path('profile/', UserDelete.as_view(), name='user-delete'),
+    path('order-statistics/', order_statistics, name='order_statistics'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

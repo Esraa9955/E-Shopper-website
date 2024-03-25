@@ -308,3 +308,26 @@ class CreateCheckOutSession(APIView):
             return redirect(checkout_session.url)
         except Exception as e:
             return Response({'msg':'something went wrong while creating stripe session','error':str(e)}, status=500)
+        
+
+from django.db.models import Sum, Count
+from django.http import JsonResponse
+
+def order_statistics(request):
+    # Calculate total orders
+    total_orders = Order.objects.count()
+
+    # Calculate total revenue
+    total_revenue = Order.objects.aggregate(total=Sum('total_price'))['total'] or 0
+
+    # Calculate average order value
+    average_order_value = total_revenue / total_orders if total_orders > 0 else 0
+
+    # Prepare data for visualization
+    statistics_data = {
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'average_order_value': average_order_value,
+    }
+
+    return JsonResponse(statistics_data)
