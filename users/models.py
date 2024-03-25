@@ -43,6 +43,7 @@ class User(AbstractUser):
         ('customer', 'Customer'),
         ('vendor', 'Vendor'),
         ('DeliveryMan', 'DeliveryMan'),
+        ('Admin', 'Admin'),
     ]
 
     first_name = models.CharField(max_length=10, validators=[MinLengthValidator(limit_value=3), MaxLengthValidator(limit_value=30)])

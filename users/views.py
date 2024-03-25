@@ -21,7 +21,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from order.models import Order
 from product.models import Product
-
+from .serializers import UserCreationSerializer
 # Create your views here.
 
 class RegisterView(APIView):
@@ -322,6 +322,16 @@ class UserProfileView(APIView):
         serializer = UserSerializer(user)
         # Return the serialized user data
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class AddUserView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        serializer = UserCreationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 

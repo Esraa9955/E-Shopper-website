@@ -83,3 +83,23 @@ class StatisticsSerializer(serializers.Serializer):
     products_count = serializers.IntegerField()
     users_count = serializers.IntegerField()
     
+
+class UserCreationSerializer(serializers.ModelSerializer):
+    confirmPassword = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'password', 'confirmPassword', 'phone', 'usertype', 'address', 'shopname', 'is_active', 'is_staff', 'is_superuser', 'birthdate']
+
+    def validate(self, data):
+        # Check if password and confirmPassword match
+        if data.get('password') != data.get('confirmPassword'):
+            raise serializers.ValidationError("Password and confirmPassword do not match.")
+
+        return data
+
+    def create(self, validated_data):
+        # Remove confirmPassword from validated data
+        validated_data.pop('confirmPassword')
+        # Create and return the user object
+        return User.objects.create_user(**validated_data)
