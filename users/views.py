@@ -285,28 +285,44 @@ def get_statistics(request):
 class UserDelete(APIView):
     def delete(self, request):
         try:
-            # Get the user making the request
             user = request.user
-            
-            # Check if the user is an admin
             if not user.is_staff:
                 return Response({'error': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
-
-            # Get user ID to delete from request data
             user_id = request.data.get('id')
-            
-            # Check if user ID is provided
             if not user_id:
                 return Response({'error': 'User ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Check if the user to delete exists
             user_to_delete = User.objects.filter(id=user_id).first()
             if not user_to_delete:
                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-            # Delete the user
             user_to_delete.delete()
             return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UserUpdate(APIView):
+    def put(self, request, pk):
+        try:
+            user = User.objects.get(id=pk)
+            fields_to_update = ['first_name', 'last_name', 'email', 'birthdate', 'address', 'phone', 'usertype']
+            data = {k: v for k, v in request.data.items() if k in fields_to_update}
+            serializer = UserSerializer(user, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class UserProfileView(APIView):
+    def get(self, request, user_id):
+        # Retrieve the user object or return 404 if not found
+        user = get_object_or_404(User, id=user_id)
+        # Serialize the user data
+        serializer = UserSerializer(user)
+        # Return the serialized user data
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+
