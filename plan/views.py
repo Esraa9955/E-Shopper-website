@@ -1,5 +1,4 @@
 
-
 from rest_framework import response
 from django.http import HttpResponse
 import stripe
@@ -20,7 +19,7 @@ from rest_framework import generics
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from rest_framework import status
-
+from rest_framework.decorators import api_view
 
 stripe.api_key=settings.STRIPE_SECRET_KEY
 User = get_user_model()
@@ -35,7 +34,30 @@ class PlanPreview(RetrieveAPIView):
     permission_classes=[permissions.AllowAny]
     queryset=Plan.objects.all()
 
-
+@api_view(['POST'])
+def create_plan(request):
+    user = request.user
+    if request.method == 'POST':
+        if user.is_superuser:
+            serializer = PlanSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Only superusers can create plans"}, status=status.HTTP_403_FORBIDDEN)
+        
+@api_view(['DELETE'])
+def delete_plan(request, pk):
+    user = request.user
+    try:
+        plan = Plan.objects.get(pk=pk)
+    except Plan.DoesNotExist:
+        return Response({'error': 'Plan not found'}, status=status.HTTP_404_NOT_FOUND)
+    if not user.is_superuser:
+        return Response({'error': 'You are not authorized to delete this plan'}, status=status.HTTP_403_FORBIDDEN)
+    plan.delete()
+    return Response({'message': 'Plan deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 class CreateCheckOutSession(APIView):
     def post(self, request, *args, **kwargs):
@@ -172,3 +194,12 @@ class UpdateStockAPIView(APIView):
                 return Response({"error": "No payment history found for this vendor"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
