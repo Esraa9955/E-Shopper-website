@@ -198,36 +198,31 @@ class UpdateStockAPIView(APIView):
 
 
 
+class PlanStatistics(APIView):
+    def get(self, request):
+        # Number of Plans
+        total_plans = Plan.objects.count()
 
+        # Revenue
+        total_revenue = PaymentHistory.objects.aggregate(total_revenue=Sum('plan__price'))
 
+        # Most Purchased Plan
+        most_purchased_plan = PaymentHistory.objects.values('plan').annotate(count=Count('plan')).order_by('-count').first()
+        if most_purchased_plan:
+            most_purchased_plan_name = Plan.objects.get(id=most_purchased_plan['plan']).name
+            most_purchased_plan_count = most_purchased_plan['count']
+        else:
+            most_purchased_plan_name = None
+            most_purchased_plan_count = 0
 
-@api_view(['GET'])
-def admin_statistics(request):
-    # Calculate the total number of payments made by each vendor
-    vendor_payments = PaymentHistory.objects.values('vendor').annotate(total_payments=Count('id'))
-    
-    # Find the most purchased plan by vendors
-    most_purchased_plans = PaymentHistory.objects.values('vendor', 'plan__name').annotate(total_purchases=Count('id')).order_by('-total_purchases').first()
-    
-    # Calculate total payments made for each plan
-    plan_payments = PaymentHistory.objects.values('plan__name').annotate(total_payments=Count('id'))
-    
-    # Analyze trends over time (if date field is available)
-    # Assuming PaymentHistory model has a 'date' field
-    today = timezone.now()
-    one_month_ago = today - timezone.timedelta(days=30)
-    payments_trend = PaymentHistory.objects.filter(date__gte=one_month_ago).values('date').annotate(total_payments=Count('id'))
-    
-    # Calculate total revenue generated
-    total_revenue = PaymentHistory.objects.aggregate(total_revenue=Sum('plan__price'))
+        statistics = {
+            'total_plans': total_plans,
+            'total_revenue': total_revenue['total_revenue'] if total_revenue['total_revenue'] else 0,
+            'most_purchased_plan': most_purchased_plan_name,
+            'most_purchased_plan_count': most_purchased_plan_count
+        }
 
-    return Response({
-        'vendor_payments': vendor_payments,
-        'most_purchased_plan': most_purchased_plans,
-        'plan_payments': plan_payments,
-        'payments_trend': payments_trend,
-        'total_revenue': total_revenue,
-    })
+        return Response(statistics)
 
 
 

@@ -62,7 +62,7 @@ class Order(models.Model):
         max_length=50, choices=ORDER_STATUS_CHOICES, default=PENDING_STATE
     )
     is_paid = models.BooleanField(default=False)
-    #category= models.ForeignKey(Category,on_delete=models.CASCADE,default=1)
+    category= models.ForeignKey(Category,on_delete=models.CASCADE,default=1)
 
 
     def __str__(self):

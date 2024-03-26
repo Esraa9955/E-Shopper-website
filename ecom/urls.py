@@ -34,7 +34,7 @@ urlpatterns = [
     path('profile/<int:pk>/', UserUpdate.as_view(), name='user-update'),
     path('user-profile/<int:user_id>/', UserProfileView.as_view(), name='user-profile'),
     path('add-user/', AddUserView.as_view(), name='add_user'),
-     path('api/admin/custom-statistics/', admin_statistics, name='custom_admin_statistics'),
+    path('api/admin/plan-statistics/', PlanStatistics.as_view(), name='plan_statistics'),
     
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
