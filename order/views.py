@@ -44,6 +44,92 @@ def get_user_orders(request):
     serializer = OrderSerializer(orders, many=True)
     return Response({'orders': serializer.data})
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def vendor_orderItems(request):
+    user = request.user
+    try:
+        items = OrderItem.objects.filter(product__vendor=user)
+    except OrderItem.DoesNotExist:
+        raise ValidationError({'error': 'Order items not found for this vendor'})
+
+    serializer = OrderItemsSerializer(items, many=True)
+    return Response({'order_items': serializer.data})
+
+@api_view(['PUT'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def shipProduct(request, product_id):
+    try:    
+        order_item = OrderItem.objects.get(id=product_id)
+    except OrderItem.DoesNotExist:
+        return Response({'error': 'Order item not found'}, status=404)
+    
+    order_item.isReady = True
+    order_item.save()
+
+    order = order_item.order
+    if OrderItem.objects.filter(order=order).exclude(isReady=True).exists():
+        # Not all items are ready, do not update the order status
+        return Response({'msg': 'Product shipment status updated successfully'}, status=200)
+    
+    # All items are ready, update the order status to "R"
+    if order.status != "C" and order.status != "F":
+        order.status = 'R'
+        order.save()
+
+    return Response({'msg': 'Product shipment status updated successfully'})
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def shipOrder(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if order.status == Order.READY_STATE:
+        order.status = Order.SHIPPED_STATE
+        order.save()
+        order_items = OrderItem.objects.filter(order=order)
+        order_items_data = OrderItemsSerializer(order_items, many=True).data
+        subject = 'Ashion'
+        message = f'Your order of code {order_id} has been shipped from Ashion on its way to you Mr/Mrs.{order.first_name}.\n\nOrder Items:\n'
+        for item in order_items_data:
+            message += f'Product: {item["name"]}, Quantity: {item["quantity"]}, Size: {item["size"]}, Price: {item["price"]}\n'
+        message += f'\nTotal: ${order.total_price}'
+        from_email = 'admin@ashion.com'
+        recipient_list = [order.email]
+        send_mail(subject, message, from_email, recipient_list)
+
+    serializer = OrderSerializer(order)
+    return Response(serializer.data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def refundMoney(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if order.status == Order.CANSCELLED_STATE or order.status == Order.FAILED_STATE:
+        order.status = Order.REFUNDED_STATE
+        order.save()
+        order_items = OrderItem.objects.filter(order=order)
+        order_items_data = OrderItemsSerializer(order_items, many=True).data
+        subject = 'Ashion'
+        message = f'Your order of code {order_id} will be refunded Mr/Mrs.{order.first_name} and refunds take 5-10 days.\n\nOrder Items:\n'
+        for item in order_items_data:
+            message += f'Product: {item["name"]}, Quantity: {item["quantity"]}, Size: {item["size"]}, Price: {item["price"]}\n'
+        message += f'\nTotal: ${order.total_price}'
+        from_email = 'admin@ashion.com'
+        recipient_list = [order.email]
+        send_mail(subject, message, from_email, recipient_list)
+
+    serializer = OrderSerializer(order)
+    return Response(serializer.data)
+
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
@@ -264,10 +350,32 @@ def cancelOrder(request, pk):
     if order.status not in [Order.SHIPPED_STATE, Order.DELIVERED_STATE]:
         order.status = Order.CANSCELLED_STATE  # Change status to canceled
         order.save()
+        for item in order.orderitems.all():
+            if item.size == 'S':
+                item.product.stock_S += item.quantity
+            elif item.size == 'M':
+                item.product.stock_M += item.quantity
+            elif item.size == 'L':
+                item.product.stock_L += item.quantity
+            elif item.size == 'XL':
+                item.product.stock_XL += item.quantity
+            elif item.size == 'one_size':
+                item.product.stock += item.quantity
+            item.product.save()
+        
+        order_items = OrderItem.objects.filter(order=order)
+        order_items_data = OrderItemsSerializer(order_items, many=True).data
+        subject = 'Ashion'
+        message = f'Your order of code {pk} has been cancelled Mr/Mrs.{order.first_name}, Your refund request is on its way to us, Wait for the refund mail.\n\nOrder Items:\n'
+        for item in order_items_data:
+            message += f'Product: {item["name"]}, Quantity: {item["quantity"]}, Size: {item["size"]}, Price: {item["price"]}\n'
+        message += f'\nTotal: ${order.total_price}'
+        from_email = 'admin@ashion.com'
+        recipient_list = [order.email]
+        send_mail(subject, message, from_email, recipient_list)
         return Response({'msg': 'Order canceled successfully'}, status=status.HTTP_200_OK)
     else:
         return Response({'msg': 'Order cannot be canceled, status is already shipped or delivered'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 

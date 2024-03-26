@@ -7,5 +7,7 @@ from order.views import *
 
 
 urlpatterns = [
-    path('update/<int:order_id>', updateOrderStatus),
+    path('failed/<int:order_id>', orderFailed),
+    path('delivered/<int:order_id>', orderDelivered),
+    path('list/', listShippedOrders),
 ]
