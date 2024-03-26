@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from users.views import *
 from order.views import *
+from plan.views import *
 
 
 
@@ -33,6 +34,7 @@ urlpatterns = [
     path('profile/<int:pk>/', UserUpdate.as_view(), name='user-update'),
     path('user-profile/<int:user_id>/', UserProfileView.as_view(), name='user-profile'),
     path('add-user/', AddUserView.as_view(), name='add_user'),
+     path('api/admin/custom-statistics/', admin_statistics, name='custom_admin_statistics'),
     
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

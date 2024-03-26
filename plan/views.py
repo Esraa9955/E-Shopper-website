@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import api_view
+from django.db.models import Count, Sum
 
 stripe.api_key=settings.STRIPE_SECRET_KEY
 User = get_user_model()
@@ -200,6 +201,33 @@ class UpdateStockAPIView(APIView):
 
 
 
+@api_view(['GET'])
+def admin_statistics(request):
+    # Calculate the total number of payments made by each vendor
+    vendor_payments = PaymentHistory.objects.values('vendor').annotate(total_payments=Count('id'))
+    
+    # Find the most purchased plan by vendors
+    most_purchased_plans = PaymentHistory.objects.values('vendor', 'plan__name').annotate(total_purchases=Count('id')).order_by('-total_purchases').first()
+    
+    # Calculate total payments made for each plan
+    plan_payments = PaymentHistory.objects.values('plan__name').annotate(total_payments=Count('id'))
+    
+    # Analyze trends over time (if date field is available)
+    # Assuming PaymentHistory model has a 'date' field
+    today = timezone.now()
+    one_month_ago = today - timezone.timedelta(days=30)
+    payments_trend = PaymentHistory.objects.filter(date__gte=one_month_ago).values('date').annotate(total_payments=Count('id'))
+    
+    # Calculate total revenue generated
+    total_revenue = PaymentHistory.objects.aggregate(total_revenue=Sum('plan__price'))
+
+    return Response({
+        'vendor_payments': vendor_payments,
+        'most_purchased_plan': most_purchased_plans,
+        'plan_payments': plan_payments,
+        'payments_trend': payments_trend,
+        'total_revenue': total_revenue,
+    })
 
 
 
