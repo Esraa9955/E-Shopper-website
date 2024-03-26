@@ -48,10 +48,11 @@ def addToCart(request):
                 total_item_price = existing_cart_item.get_total_item_price()
                 return Response({'msg': 'Quantity updated in cart', 'total_item_price': total_item_price,'quantity': new_quantity - old_quantity}, status=status.HTTP_200_OK)
             else:
+                addedQuantity = itemStock - existing_cart_item.quantity
                 existing_cart_item.quantity = itemStock
                 existing_cart_item.save()
                 total_item_price = existing_cart_item.get_total_item_price()
-                return Response({'msg': 'Quantity cannot be increased further, exceeds stock limit'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'msg': 'Quantity cannot be increased further, exceeds stock limit', 'quantity':addedQuantity}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'msg': 'No item found in the cart to update'}, status=status.HTTP_404_NOT_FOUND)
     elif Cart.objects.filter(user=user, item=item).exists():

@@ -7,6 +7,7 @@ class CartSerlizer(serializers.ModelSerializer):
     item_name = serializers.CharField(source='item.name', read_only=True)
     item_price = serializers.SerializerMethodField()
     subtotal_price = serializers.SerializerMethodField()
+    stock = serializers.IntegerField(source='item.stock', read_only=True)
     stock_S = serializers.IntegerField(source='item.stock_S', read_only=True)
     stock_M = serializers.IntegerField(source='item.stock_M', read_only=True)
     stock_L = serializers.IntegerField(source='item.stock_L', read_only=True)
