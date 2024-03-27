@@ -40,9 +40,10 @@ def get_orders(request):
 @authentication_classes([TokenAuthentication])
 def get_user_orders(request):
     user = request.user
-    orders = Order.objects.filter(email=user.email)  # Assuming email is used to identify the user
+    orders = Order.objects.filter(email=user.email) .order_by('-id') # Assuming email is used to identify the user
     serializer = OrderSerializer(orders, many=True)
     return Response({'orders': serializer.data})
+
 
 
 @api_view(['GET'])
@@ -198,8 +199,10 @@ def delete_orderTmp(request,pk):
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def new_orderTmp(request):
+    user = request.user
     data = request.data
     order_items = data.get('order_Items', [])
+    items_to_delete = []
 
     if not order_items or len(order_items) == 0:
         return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,7 +216,7 @@ def new_orderTmp(request):
     order = OrderTmp.objects.create(
         first_name=data['first_name'],
         last_name=data['last_name'],
-        email=data['email'],
+        email=user.email,
         city=data['city'],
         zip_code=zip_code,
         street=data['street'],
@@ -235,34 +238,46 @@ def new_orderTmp(request):
                     price=i.get('price', 0),  # Use .get() to handle missing 'price' key
                     size=i['size'],  # Use .get() to handle missing 'price' key
                 )
-                # size=i['size']  # Use .get() to handle missing 'price' key
-                # if size == "S":
-                #     product.stock_S -= item.quantity
-                # elif size == "M":
-                #     product.stock_M -= item.quantity
-                # elif size == "L":
-                #     product.stock_L -= item.quantity
-                # elif size == "XL":
-                #     product.stock_XL -= item.quantity
-                # elif size == "one_size":
-                #     product.stock -= item.quantity
-                # product.stock -= item.quantity
+                size=i['size']
+                quantity = i['quantity']
+                if size == 'S' and product.stock_S == 0:
+                    items_to_delete.append(i)
+                    continue
+                elif size == 'M' and product.stock_M == 0:
+                    items_to_delete.append(i)
+                    continue
+                elif size == 'L' and product.stock_L == 0:
+                    items_to_delete.append(i)
+                    continue
+                elif size == 'XL' and product.stock_XL == 0:
+                    items_to_delete.append(i)
+                    continue
+                elif size == 'one_size' and product.stock == 0:
+                    items_to_delete.append(i)
+                item_price = float(i.get('price', 0)) * quantity
+                total_price += item_price
+
                 product.save()
         except Product.DoesNotExist:
             return Response({'error': f'Product with ID {i["product"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    # Delete items with zero stock from the order
+    for item_to_delete in items_to_delete:
+        order_items.remove(item_to_delete)
 
-    cart_items = Cart.objects.filter()
-    # cart_items.delete()
+    # Update total price of the order
+    order.total_price = total_price
+    order.save()
     serializer = OrderTmpSerializer(order, many=False)
     return Response(serializer.data)
-
 @api_view(['POST'])
 @transaction.atomic
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def new_order(request):
+    user = request.user
     data = request.data
     order_items = data.get('order_Items', [])
+    
 
     if not order_items or len(order_items) == 0:
         return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
@@ -276,7 +291,7 @@ def new_order(request):
     order = Order.objects.create(
         first_name=data['first_name'],
         last_name=data['last_name'],
-        email=data['email'],
+        email=user.email,
         city=data['city'],
         zip_code=zip_code,
         street=data['street'],
@@ -298,23 +313,30 @@ def new_order(request):
                     price=i.get('price', 0),  # Use .get() to handle missing 'price' key
                     size = i["size"]
                 )
+                
                 size=i['size']  # Use .get() to handle missing 'price' key
-                if size == "S":
+                if size == "S" and product.stock_S >= item.quantity:
                     product.stock_S -= item.quantity
-                elif size == "M":
+                elif size == "M" and product.stock_M >= item.quantity:
                     product.stock_M -= item.quantity
-                elif size == "L":
+                elif size == "L" and product.stock_L >= item.quantity:
                     product.stock_L -= item.quantity
-                elif size == "XL":
+                elif size == "XL" and product.stock_XL >= item.quantity:
                     product.stock_XL -= item.quantity
-                elif size == "one_size":
+                elif size == "one_size" and product.stock >= item.quantity:
                     product.stock -= item.quantity
+                else:
+                    order.total_price = total_price - (float(item.quantity) * float(item.price))
+                    order.save()
+                    item.delete()  # Remove the item from the order if stock is insufficient
+                    # return Response({'error': f'Insufficient stock for product with ID {i["product"]}'}, status=status.HTTP_400_BAD_REQUEST)
+                
                 # product.stock -= item.quantity
                 product.save()
         except Product.DoesNotExist:
             return Response({'error': f'Product with ID {i["product"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-    cart_items = Cart.objects.filter()
+    cart_items = Cart.objects.filter(user=user.id)
     cart_items.delete()
     serializer = OrderSerializer(order, many=False)
     return Response(serializer.data)
