@@ -439,3 +439,20 @@ def order_statistics(request):
     }
 
     return JsonResponse(statistics_data)
+
+def best_selling_products(request):
+    # Aggregate the quantity sold for each product
+    best_selling_products = OrderItem.objects.values('product').annotate(
+        total_quantity_sold=Sum('quantity')
+    ).order_by('-total_quantity_sold')[:10]  # Get the top 10 best-selling products
+
+    # Prepare data for visualization
+    products_data = []
+    for item in best_selling_products:
+        product = Product.objects.get(id=item['product'])
+        products_data.append({
+            'product_name': product.name,
+            'total_quantity_sold': item['total_quantity_sold'],
+        })
+
+    return JsonResponse({'best_selling_products': products_data})

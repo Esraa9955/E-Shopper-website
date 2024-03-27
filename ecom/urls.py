@@ -35,6 +35,7 @@ urlpatterns = [
     path('user-profile/<int:user_id>/', UserProfileView.as_view(), name='user-profile'),
     path('add-user/', AddUserView.as_view(), name='add_user'),
     path('api/admin/plan-statistics/', PlanStatistics.as_view(), name='plan_statistics'),
+     path('best-selling-products/', best_selling_products, name='best_selling_products'),
     
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
