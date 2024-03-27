@@ -202,7 +202,7 @@ def new_orderTmp(request):
     user = request.user
     data = request.data
     order_items = data.get('order_Items', [])
-    items_to_delete = []
+    # items_to_delete = []
 
     if not order_items or len(order_items) == 0:
         return Response({'error': 'No order received'}, status=status.HTTP_400_BAD_REQUEST)
@@ -238,24 +238,24 @@ def new_orderTmp(request):
                     price=i.get('price', 0),  # Use .get() to handle missing 'price' key
                     size=i['size'],  # Use .get() to handle missing 'price' key
                 )
-                size=i['size']
-                quantity = i['quantity']
-                if size == 'S' and product.stock_S == 0:
-                    items_to_delete.append(i)
-                    continue
-                elif size == 'M' and product.stock_M == 0:
-                    items_to_delete.append(i)
-                    continue
-                elif size == 'L' and product.stock_L == 0:
-                    items_to_delete.append(i)
-                    continue
-                elif size == 'XL' and product.stock_XL == 0:
-                    items_to_delete.append(i)
-                    continue
-                elif size == 'one_size' and product.stock == 0:
-                    items_to_delete.append(i)
-                item_price = float(i.get('price', 0)) * quantity
-                total_price += item_price
+                # size=i['size']
+                # quantity = i['quantity']
+                # if size == 'S' and product.stock_S == 0:
+                #     items_to_delete.append(i)
+                #     continue
+                # elif size == 'M' and product.stock_M == 0:
+                #     items_to_delete.append(i)
+                #     continue
+                # elif size == 'L' and product.stock_L == 0:
+                #     items_to_delete.append(i)
+                #     continue
+                # elif size == 'XL' and product.stock_XL == 0:
+                #     items_to_delete.append(i)
+                #     continue
+                # elif size == 'one_size' and product.stock == 0:
+                #     items_to_delete.append(i)
+                # item_price = float(i.get('price', 0)) * quantity
+                # total_price += item_price
 
                 product.save()
         except Product.DoesNotExist:
@@ -325,10 +325,11 @@ def new_order(request):
                     product.stock_XL -= item.quantity
                 elif size == "one_size" and product.stock >= item.quantity:
                     product.stock -= item.quantity
-                else:
-                    order.total_price = total_price - (float(item.quantity) * float(item.price))
-                    order.save()
-                    item.delete()  # Remove the item from the order if stock is insufficient
+                # else:
+                #     order.total_price = total_price - (float(item.quantity) * float(item.price))
+                #     order.save()
+                #     item.delete() 
+                    # order_items.save() # Remove the item from the order if stock is insufficient
                     # return Response({'error': f'Insufficient stock for product with ID {i["product"]}'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # product.stock -= item.quantity
