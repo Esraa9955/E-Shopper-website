@@ -169,9 +169,34 @@ def listCartItems(request):
     serializer = CartSerlizer(user_carts, many=True)
     total_items_price = 0
     total_items_count = 0
+   
     for cart_item in user_carts:
-        total_items_price += cart_item.get_total_item_price()
-        total_items_count += cart_item.quantity
+        size = cart_item.size
+        if size == "one_size":
+            if cart_item.item.stock == 0:
+                cart_item.delete()
+                user_carts.save()
+        elif size == "S":
+            if cart_item.item.stock_S == 0:
+                cart_item.delete()
+                user_carts.save()
+        elif size == "M":
+            if cart_item.item.stock_M == 0:
+                cart_item.delete()
+                user_carts.save()
+        elif size == "L":
+            if cart_item.item.stock_L == 0:
+                cart_item.delete()
+                user_carts.save()
+        elif size == "XL":
+            if cart_item.item.stock_XL == 0:
+                cart_item.delete()
+                user_carts.save()
+        for cart_item in user_carts:
+            total_items_price += cart_item.get_total_item_price()
+            total_items_count += cart_item.quantity
+        # print(size)
+        # print("******************************")
     response_data = {
         'cart_items': serializer.data,
         'total_items_price': total_items_price,

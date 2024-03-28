@@ -261,14 +261,17 @@ def new_orderTmp(request):
         except Product.DoesNotExist:
             return Response({'error': f'Product with ID {i["product"]} does not exist'}, status=status.HTTP_404_NOT_FOUND)
     # Delete items with zero stock from the order
-    for item_to_delete in items_to_delete:
-        order_items.remove(item_to_delete)
+    # for item_to_delete in items_to_delete:
+    #     order_items.remove(item_to_delete)
 
     # Update total price of the order
     order.total_price = total_price
     order.save()
     serializer = OrderTmpSerializer(order, many=False)
     return Response(serializer.data)
+
+
+
 @api_view(['POST'])
 @transaction.atomic
 @permission_classes([IsAuthenticated])
@@ -478,4 +481,4 @@ def best_selling_products(request):
             'total_quantity_sold': item['total_quantity_sold'],
         })
 
-    return JsonResponse({'best_selling_products': products_data})
+    return JsonResponse({'best_selling_products': products_data})	
